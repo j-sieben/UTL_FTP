@@ -175,23 +175,19 @@ No auto session detected.
 Or, here's the output of `utl_ftp.get_control_log` which is available within an explicit session:
 
 ```
-...
-for r in (select code || ': ' || message reply 
-            from table(utl_ftp.get_control_log)) loop
-  dbms_output.put_line(r.reply);
-end loop;
-...
+select code, message 
+  from table(utl_ftp.get_control_log)) 
 
-REPLY
---------------------------------------------------------------
-220: 192.168.1.33 FTP server (tnftpd 20100324+GSSAPI) ready.
-331: User j.sieben accepted, provide password.
-230: User j.sieben logged in.
-257: "/Users/j.sieben/Desktop/Archive" directory created.
-350: File exists, ready for destination name
-250: RNTO command successful.
-250: DELE command successful.
-250: RMD command successful.
+CODE MESSAGE
+---- ---------------------------------------------------------
+220  192.168.1.33 FTP server (tnftpd 20100324+GSSAPI) ready.
+331  User j.sieben accepted, provide password.
+230  User j.sieben logged in.
+257  "/Users/j.sieben/Desktop/Archive" directory created.
+350  File exists, ready for destination name
+250  RNTO command successful.
+250  DELE command successful.
+250  RMD command successful.
 ```
 
 ## Supported commands
