@@ -2,38 +2,38 @@
 Simple FTP client for in database use
 
 ## What it is
-Based on the work of Tim Hall at [Oracle Base](https://oracle-base.com/articles/misc/ftp-from-plsql) I started to build my own implementation of a FTP client for in database use. The work of Tim was valuable as it showed me how this can be done but it turned out that I needed a different interface and some other functionality than what Tim has done.
-
-I therefore decided to elaborate on the code but soon it turned out that I had to completely redesigned it in order to achieve my requirements. These are:
+Based on the work of Tim Hall at [Oracle Base](https://oracle-base.com/articles/misc/ftp-from-plsql) I started to build my own implementation of a FTP client for in database use. The work of Tim was extremely useful as it showed me how talking to a FTP server can be done. But it turned out that I needed a different interface and some additional functionality over what Tim has implemented. I therefore decided to extend Tim's code but soon it turned out that I had to completely redesign it in order to achieve my requirements. These are:
 
 - Ability to directly send a blob or clob from within the database to a FTP server and receive a FTP file into a BLOB or CLOB directly
-- Being able to work within a session without having to re-connect each time I want do use the FPT client
-- Ability to read a FTP directory directly from within SQL and use this as a cursor in PL/SQL
+- Being able to work within a session without having to re-connect each time
+- Ability to read a FTP directory directly from within SQL and use this within a cursor in PL/SQL
+- Searching through directory structures with SQL
+- Full instrumentation, including exception handling
 
 All this is now possible with UTL_FTP. I want to give back to the community what I took by reading and understanding Tim's code, so here is my implementation, free to use for anybody who feels a requirement to use it.
 
 ## How it works
 
-Basically you can work with UTL_FTP in two ways: With an explicit or implicit session.
+Basically you can work with UTL_FTP in two ways: With explicit or implicit session.
 
-You start by registering a server with UTL_FTP and provide the package with the contact information. If you like, you can have UTL_FTP store these credentials in a database table for you, or you can pass it in for one explicit session and have UTL_FTP discard it after the session.
+You start by registering a FTP server with UTL_FTP by providing the package the credentials of that server and a nickname for it. If you like, you can have UTL_FTP store these credentials in a database table for you, or you can pass the credentials in for one explicit session and have UTL_FTP discard it later.
 
 Here's an example of how to register a FTP server with UTL_FTP:
 
 ```
 begin
   utl_ftp.register_ftp_server(
-    p_ftp_server => 'FOO', -- this is a nickname under which you reference the server later
-    p_host_name => '129.168.1.10',
+    p_ftp_server => 'FOO', -- this is the nickname you reference the server with
+    p_host_name => '129.168.1.10', -- or DNS name
     p_port => 21,
-    p_username => 'FOO',
+    p_username => 'FOO', -- defaults to anonymous
     p_password => 'my_pass',
     p_permanent => true -- this controls whether the credentials get stored or not
   );
 end;
 ```
 
-Once a FTP server is registered, you can either explicitly create a session or just use it for a single call. Here's an example of how you could query a directory on the server in plain SQL:
+Once a FTP server is registered, you can either explicitly create a session or simply use UTL_FTP directly. Here's an example of how you could query a directory on the server in plain SQL with and implicit session:
 
 ```
 SQL> select item_name, item_type, item_modify_date, file_size
@@ -47,9 +47,9 @@ f133.sql                       file                 27.07.16     698723
 f179.sql                       file                 03.08.16     403890
 ```
 
-You see that UTL_FTP.list_directory implicitly connected to server `FOO` without passing any credentials in. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop´.
+You see that UTL_FTP.list_directory implicitly connected to server `FOO` without passing any credentials in. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop´. Here you see the advantage of having the directory available in SQL, as you can deliberately filter and search using plain SQL.
 
-The second basic usage is to explicitly create a session and issue one or more command afterwards. In this case, the session keeps open until you explicitly log off again, saving resources and enhancing speed. As FTP dictates, each command will use it's own control connection to read data if required, but the data connection keeps open until you log off. Here's an example of that usage:
+The second basic usage is to explicitly create a session and issue one or more commands afterwards. In this case, the session keeps open until you explicitly log off again, saving resources and enhancing speed. As FTP dictates, each command will use it's own control connection to read data if required, but the data connection keeps open until you log off. Here's an example of that usage:
 
 ```
 begin
@@ -170,6 +170,18 @@ No auto session detected.
 ....< UTL_FTP.get_response [wc=03.09.16 19:04:21,746000; e=0; e_cpu=0; t=+00 00:00:00.000000; t_cpu=0]
 ..< UTL_FTP.do_command [wc=03.09.16 19:04:21,746000; e=4; e_cpu=4; t=+00 00:00:00.015000; t_cpu=2]
 < UTL_FTP.logout [wc=03.09.16 19:04:21,746000; e=2; e_cpu=2; t=+00 00:00:00.015000; t_cpu=2]
+```
+
+Or, here's the output of ´utl_ftp.get_control_log´ which is available within an explicit session:
+```
+220: 192.168.1.33 FTP server (tnftpd 20100324+GSSAPI) ready.
+331: User j.sieben accepted, provide password.
+230: User j.sieben logged in.
+257: "/Users/j.sieben/Desktop/Archive" directory created.
+350: File exists, ready for destination name
+250: RNTO command successful.
+250: DELE command successful.
+250: RMD command successful.
 ```
 
 ## Supported commands
