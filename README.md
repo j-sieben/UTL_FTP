@@ -172,7 +172,8 @@ No auto session detected.
 < UTL_FTP.logout [wc=03.09.16 19:04:21,746000; e=2; e_cpu=2; t=+00 00:00:00.015000; t_cpu=2]
 ```
 
-Or, here's the output of ´utl_ftp.get_control_log´ which is available within an explicit session:
+Or, here's the output of `utl_ftp.get_control_log` which is available within an explicit session:
+
 ```
 220: 192.168.1.33 FTP server (tnftpd 20100324+GSSAPI) ready.
 331: User j.sieben accepted, provide password.
