@@ -47,7 +47,7 @@ f133.sql                       file                 27.07.16     698723
 f179.sql                       file                 03.08.16     403890
 ```
 
-You see that `UTL_FTP.list_directory` implicitly connected to server `FOO` based on the credentials you passed in when registring the server. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop´. Here you see the advantage of having the directory available in SQL, as you can deliberately filter and search using plain SQL.
+You see that `UTL_FTP.list_directory` implicitly connected to server `FOO` based on the credentials you passed in when registring the server. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop`. Here you see the advantage of having the directory available in SQL, as you can deliberately filter and search using plain SQL.
 
 The second basic usage is to explicitly create a session and issue one or more commands afterwards. In this case, the session keeps open until you explicitly log off again, saving resources and enhancing speed. As FTP dictates, each command will use it's own control connection to read data if required, but the data connection keeps open until you log off. Here's an example of that usage:
 
