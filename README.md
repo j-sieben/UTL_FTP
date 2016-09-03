@@ -176,7 +176,7 @@ Or, here's the output of `utl_ftp.get_control_log` which is available within an 
 
 ```
 SQL> select code, message 
-  2    from table(utl_ftp.get_control_log));
+  2    from table(utl_ftp.get_control_log);
 
 CODE MESSAGE
 ---- ---------------------------------------------------------
