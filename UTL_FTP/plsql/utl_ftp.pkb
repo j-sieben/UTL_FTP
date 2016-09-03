@@ -450,9 +450,13 @@ create or replace package body utl_ftp as
   begin
     pit.enter_optional('auto_login', c_pkg);
     if g_server.host_name is null then
-      get_ftp_server(p_ftp_server);
-      login;
-      g_server.auto_session := true;
+      if p_ftp_server is not null then
+        get_ftp_server(p_ftp_server);
+        login;
+        g_server.auto_session := true;
+      else
+        pit.error(msg.FTP_INVALID_SERVER, msg_args(''));
+      end if;
     end if;
     pit.leave_optional;
   exception
@@ -473,8 +477,6 @@ create or replace package body utl_ftp as
     pit.enter_optional('auto_logout', c_pkg);
     if g_server.auto_session then
       logout;
-    else
-      dbms_output.put_line('No auto session detected.');
     end if;
     pit.leave_optional;
   exception
@@ -585,10 +587,10 @@ create or replace package body utl_ftp as
   
   /* COMMANDS */
   procedure get(
-    p_ftp_server in varchar2,
     p_from_file in varchar2,
     p_to_directory in varchar2,
     p_to_file in varchar2,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary) 
   as
     l_out_file utl_file.file_type;
@@ -638,9 +640,9 @@ create or replace package body utl_ftp as
   
   
   procedure get(
-    p_ftp_server in varchar2,
     p_from_file in varchar2,
     p_data out nocopy clob,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary)
   as
     l_amount pls_integer;
@@ -680,9 +682,9 @@ create or replace package body utl_ftp as
     
     
   procedure get(
-    p_ftp_server in varchar2,
     p_from_file in varchar2,
-    p_data out nocopy blob)
+    p_data out nocopy blob,
+    p_ftp_server in varchar2 default null)
   as
     l_amount pls_integer;
     l_buffer raw_chunk_type;
@@ -723,10 +725,10 @@ create or replace package body utl_ftp as
  
  
   procedure put(
-    p_ftp_server in varchar2,
     p_from_directory in varchar2,
     p_from_file in varchar2,
     p_to_file in varchar2,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary) 
   as
     l_bfile bfile;
@@ -775,10 +777,10 @@ create or replace package body utl_ftp as
   
     
   procedure put(
-    p_ftp_server in varchar2,
     p_to_file in varchar2,
     p_clob in clob default null,
     p_blob in blob default null,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_ascii)
   as
     l_result pls_integer;
@@ -868,8 +870,8 @@ create or replace package body utl_ftp as
   
     
   function get_help(
-    p_ftp_server in varchar2,
-    p_command in varchar2 default null)
+    p_command in varchar2 default null,
+    p_ftp_server in varchar2 default null)
     return char_table pipelined
   as
     l_command varchar2(100) := trim(c_ftp_help || p_command);
@@ -897,8 +899,8 @@ create or replace package body utl_ftp as
 
 
   function list_directory(
-    p_ftp_server in varchar2,
-    p_directory in varchar2 default null)
+    p_directory in varchar2 default null,
+    p_ftp_server in varchar2 default null)
     return ftp_list_tab pipelined
   as
     l_data_reply ftp_reply_tab;
@@ -923,8 +925,8 @@ create or replace package body utl_ftp as
   
   
   procedure create_directory(
-    p_ftp_server in varchar2,
-    p_directory in varchar2) 
+    p_directory in varchar2,
+    p_ftp_server in varchar2 default null) 
   as
     l_ftp_server ftp_server_rec;
   begin
@@ -941,8 +943,8 @@ create or replace package body utl_ftp as
 
 
   procedure remove_directory(
-    p_ftp_server in varchar2,
-    p_directory in varchar2)
+    p_directory in varchar2,
+    p_ftp_server in varchar2 default null)
   as
   begin
     pit.enter_mandatory('remove_directory', c_pkg);
@@ -958,9 +960,9 @@ create or replace package body utl_ftp as
 
 
   procedure rename_file(
-    p_ftp_server in varchar2,
     p_from in varchar2,
-    p_to in varchar2) 
+    p_to in varchar2,
+    p_ftp_server in varchar2 default null) 
   as
   begin
     pit.enter_mandatory('rename_file', c_pkg);
@@ -977,8 +979,8 @@ create or replace package body utl_ftp as
 
 
   procedure delete_file(
-    p_ftp_server in varchar2,
-    p_file in varchar2)
+    p_file in varchar2,
+    p_ftp_server in varchar2 default null)
   as
   begin
     pit.enter_mandatory('delete_file', c_pkg);

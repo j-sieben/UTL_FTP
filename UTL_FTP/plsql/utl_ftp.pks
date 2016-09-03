@@ -85,10 +85,10 @@ as
    *        return CLOB or BLOB
    */
   procedure get(
-    p_ftp_server in varchar2,
     p_from_file in varchar2,
     p_to_directory in varchar2,
     p_to_file in varchar2,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary);
     
     
@@ -101,9 +101,9 @@ as
    * %usage Use this method if you need to retrieve a file from the FTP server as CLOB
    */
   procedure get(
-    p_ftp_server in varchar2,
     p_from_file in varchar2,
     p_data out nocopy clob,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary);
     
     
@@ -114,9 +114,9 @@ as
    * %usage Use this method if you need to retrieve a file from the FTP server as BLOB
    */
   procedure get(
-    p_ftp_server in varchar2,
     p_from_file in varchar2,
-    p_data out nocopy blob);
+    p_data out nocopy blob,
+    p_ftp_server in varchar2 default null);
     
   
   /* Method to copy a local file to the FTP server
@@ -131,10 +131,10 @@ as
    *        the database, use the overloaded versions instead.
    */
   procedure put(
-    p_ftp_server in varchar2,
     p_from_directory in varchar2,
     p_from_file in varchar2,
     p_to_file in varchar2,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary);
     
     
@@ -150,10 +150,10 @@ as
    *        If neither P_CLOB nor P_BLOB is used, an error is thrown.
    */
   procedure put(
-    p_ftp_server in varchar2,
     p_to_file in varchar2,
     p_clob in clob default null,
     p_blob in blob default null,
+    p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_ascii);
   
   
@@ -191,8 +191,8 @@ as
    *        readers only.
    */
   function get_help(
-    p_ftp_server in varchar2,
-    p_command in varchar2 default null)
+    p_command in varchar2 default null,
+    p_ftp_server in varchar2 default null)
     return char_table pipelined;
     
   
@@ -206,8 +206,8 @@ as
    *        Example: <pre>select * from table(utl_table('MY_FTP', '/path/'));</pre>
    */
   function list_directory(
-    p_ftp_server in varchar2,
-    p_directory in varchar2 default null)
+    p_directory in varchar2 default null,
+    p_ftp_server in varchar2 default null)
     return ftp_list_tab pipelined;
   
   
@@ -217,8 +217,8 @@ as
    * %usage Is called to create a new directory on the FTP server
    */
   procedure create_directory(
-    p_ftp_server in varchar2,
-    p_directory in varchar2);
+    p_directory in varchar2,
+    p_ftp_server in varchar2 default null);
   
   
   /* Removes a directory on the FTP server
@@ -227,8 +227,8 @@ as
    * %usage Is called to remove a directory on the FTP server
    */
   procedure remove_directory(
-    p_ftp_server in varchar2,
-    p_directory in varchar2);
+    p_directory in varchar2,
+    p_ftp_server in varchar2 default null);
   
   
   /* Renames a file on the FTP server
@@ -241,9 +241,9 @@ as
    *        May be used to copy a file to a new location as well.
    */
   procedure rename_file(
-    p_ftp_server in varchar2,
     p_from in varchar2,
-    p_to in varchar2);
+    p_to in varchar2,
+    p_ftp_server in varchar2 default null);
   
   
   /* Deletes a file from the FTP server
@@ -252,8 +252,8 @@ as
    * %usage Is called to delete a file from the FTP server
    */
   procedure delete_file(
-    p_ftp_server in varchar2,
-    p_file in varchar2);
+    p_file in varchar2,
+    p_ftp_server in varchar2 default null);
 
 end utl_ftp;
 /
