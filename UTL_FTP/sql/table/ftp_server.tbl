@@ -1,0 +1,25 @@
+create table ftp_server(
+  ftp_id varchar2(30 byte),
+  ftp_host_name varchar2(50 char),
+  ftp_port number,
+  ftp_user_name varchar2(50 char),
+  ftp_password varchar2(20 char),
+  constraint pk_ftp_server primary key(ftp_id),
+  constraint chk_ftp_port check(ftp_port between 1 and 65536),
+  constraint nn_ftp_host_name check (ftp_host_name is not null)
+) organization index;
+
+comment on table ftp_server is 'Table to store predefined FTP server connect data';
+comment on column ftp_server.ftp_id is 'Unique FTP server identifier. Primary key';
+comment on column ftp_server.ftp_host_name is 'IP address or DNS name of the FTP server. NOT NULL';
+comment on column ftp_server.ftp_port is 'Port the FTP server listens at. NOT NULL';
+comment on column ftp_server.ftp_user_name is 'Name of the user that connects to the server';
+comment on column ftp_server.ftp_password is 'Password of the user that connect to the server';
+
+create trigger trg_ftp_server_briu
+before insert or update on ftp_server
+for each row
+begin
+  :new.ftp_id := upper(:new.ftp_id);
+end;
+/
