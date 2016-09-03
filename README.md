@@ -33,7 +33,7 @@ begin
 end;
 ```
 
-Once a FTP server is registered, you can either explicitly create a session or simply use `UTL_FTP` directly. Here's an example of how you could query a directory on the server in plain SQL with and implicit session:
+Once a FTP server is registered, you can either explicitly create a session or simply use `UTL_FTP` directly. Here's an example of how you could query a directory on the server in plain SQL with implicit session:
 
 ```
 SQL> select item_name, item_type, item_modify_date, file_size
@@ -49,7 +49,7 @@ f179.sql                       file                 03.08.16     403890
 
 You see that `UTL_FTP.list_directory` implicitly connected to server `FOO` based on the credentials you passed in when registring the server. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop`. Here you see the advantage of having the directory available in SQL, as you can deliberately filter and search using plain SQL.
 
-The second basic usage is to explicitly create a session and issue one or more commands afterwards. In this case, the session keeps open until you explicitly log off again, saving resources and enhancing speed. As FTP dictates, each command will use it's own control connection to read data if required, but the data connection keeps open until you log off. Here's an example of that usage:
+The second basic usage is to explicitly create a session and issue one or more commands afterwards. In this case, the session keeps open until you explicitly log off again, saving resources and enhancing speed. As FTP dictates, each command will use it's own data connection to read data if required, but the control connection keeps open until you log off. Here's an example of that usage:
 
 ```
 begin
@@ -192,7 +192,7 @@ CODE MESSAGE
 
 ## Supported commands
 
-Basically, `UTL_FTP` is easy to extend beyond the functionality implemented now. Here's a list of the method `UTL_FTP` provides:
+Basically, `UTL_FTP` is easy to extend beyond the functionality implemented now. Here's a list of methods `UTL_FTP` provides:
 
 - get (overloaded for file to file, file to blob or file to clob)
 - put (overloaded for file to file, blob to file or clob to file)
@@ -203,7 +203,7 @@ Basically, `UTL_FTP` is easy to extend beyond the functionality implemented now.
 - get_control_log (all response codes from a complete session)
 - get_help (for a specific command or generically, not converted, simple raw text output as pipelined function)
 
-To extend this, you simply add a method to the package. Here's an example method that implements creating a directory:
+To extend this, you simply add a method to the package. As an example you may review the method that implements creating a directory:
 
 ```
 procedure create_directory(
@@ -213,9 +213,10 @@ as
   l_ftp_server ftp_server_rec;
 begin
   pit.enter_mandatory('create_directory', c_pkg);
-  auto_login(p_ftp_server);
+  auto_login(p_ftp_server);  -- Logs in if no session context exists
+  -- Parameter code_tab(257) passes in the (list of) expected outcome of the command
   do_command(trim(c_ftp_make_directory || p_directory), code_tab(257));
-  auto_logout;
+  auto_logout;               -- Logs off only when in implicit session
   pit.leave_mandatory;
 exception
   when others then
