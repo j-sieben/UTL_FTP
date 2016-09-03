@@ -175,6 +175,15 @@ No auto session detected.
 Or, here's the output of `utl_ftp.get_control_log` which is available within an explicit session:
 
 ```
+...
+for r in (select code || ': ' || message reply 
+            from table(utl_ftp.get_control_log)) loop
+  dbms_output.put_line(r.reply);
+end loop;
+...
+
+REPLY
+--------------------------------------------------------------
 220: 192.168.1.33 FTP server (tnftpd 20100324+GSSAPI) ready.
 331: User j.sieben accepted, provide password.
 230: User j.sieben logged in.
