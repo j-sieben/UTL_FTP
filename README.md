@@ -10,15 +10,15 @@ Based on the work of Tim Hall at [Oracle Base](https://oracle-base.com/articles/
 - Searching through directory structures with SQL
 - Full instrumentation, including exception handling
 
-All this is now possible with UTL_FTP. I want to give back to the community what I took by reading and understanding Tim's code, so here is my implementation, free to use for anybody who feels a requirement to use it.
+All this is now possible with `UTL_FTP`. I want to give back to the community what I took by reading and understanding Tim's code, so here is my implementation, free to use for anybody who feels a requirement to use it.
 
 ## How it works
 
-Basically you can work with UTL_FTP in two ways: With explicit or implicit session.
+Basically you can work with `UTL_FTP` in two ways: With explicit or implicit session.
 
-You start by registering a FTP server with UTL_FTP by providing the package the credentials of that server and a nickname for it. If you like, you can have UTL_FTP store these credentials in a database table for you, or you can pass the credentials in for one explicit session and have UTL_FTP discard it later.
+You start by registering a FTP server with `UTL_FTP` by providing the package the credentials of that server and a nickname for it. If you like, you can have `UTL_FTP` store these credentials in a database table for you, or you can pass the credentials in for one explicit session and have `UTL_FTP` discard it later.
 
-Here's an example of how to register a FTP server with UTL_FTP:
+Here's an example of how to register a FTP server with `UTL_FTP`:
 
 ```
 begin
@@ -33,7 +33,7 @@ begin
 end;
 ```
 
-Once a FTP server is registered, you can either explicitly create a session or simply use UTL_FTP directly. Here's an example of how you could query a directory on the server in plain SQL with and implicit session:
+Once a FTP server is registered, you can either explicitly create a session or simply use `UTL_FTP` directly. Here's an example of how you could query a directory on the server in plain SQL with and implicit session:
 
 ```
 SQL> select item_name, item_type, item_modify_date, file_size
@@ -47,7 +47,7 @@ f133.sql                       file                 27.07.16     698723
 f179.sql                       file                 03.08.16     403890
 ```
 
-You see that UTL_FTP.list_directory implicitly connected to server `FOO` without passing any credentials in. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop´. Here you see the advantage of having the directory available in SQL, as you can deliberately filter and search using plain SQL.
+You see that `UTL_FTP.list_directory` implicitly connected to server `FOO` based on the credentials you passed in when registring the server. It also logged out automatically after having received all information, in this case from command `MLSD /Users/j.sieben/Desktop´. Here you see the advantage of having the directory available in SQL, as you can deliberately filter and search using plain SQL.
 
 The second basic usage is to explicitly create a session and issue one or more commands afterwards. In this case, the session keeps open until you explicitly log off again, saving resources and enhancing speed. As FTP dictates, each command will use it's own control connection to read data if required, but the data connection keeps open until you log off. Here's an example of that usage:
 
@@ -63,7 +63,7 @@ end;
 /
 ```
 
-UTL_FTP uses [PIT](https://github.com/j-sieben/PIT) under the covers to log any response to commands. Here's the full log for the above action:
+`UTL_FTP` uses [PIT](https://github.com/j-sieben/PIT) under the covers to log any response to commands. Here's the full log for the above action:
 
 ```
 > UTL_FTP.login
@@ -187,7 +187,7 @@ Or, here's the output of `utl_ftp.get_control_log` which is available within an 
 
 ## Supported commands
 
-Basically, UTL_FTP is easy to extend beyond the functionality implemented now. Here's a list of the method UTL_FTP provides:
+Basically, `UTL_FTP` is easy to extend beyond the functionality implemented now. Here's a list of the method `UTL_FTP` provides:
 
 - get (overloaded for file to file, file to blob or file to clob)
 - put (overloaded for file to file, blob to file or clob to file)
