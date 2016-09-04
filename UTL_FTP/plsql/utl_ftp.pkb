@@ -703,7 +703,7 @@ as
     auto_login(p_ftp_server);    
     get_data_connection(p_transfer_type);
     
-    do_command(c_ftp_retrieve || p_from_file);
+    do_command(c_ftp_retrieve || p_from_file, code_tab(227));
     
     l_out_file := utl_file.fopen(p_to_directory, p_to_file, g_open_mode, c_chunk_size);
     -- write content from FTP server to local file
@@ -757,7 +757,7 @@ as
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
     
     -- Request file from FTP server
-    do_command(c_ftp_retrieve || p_from_file);
+    do_command(c_ftp_retrieve || p_from_file, code_tab(150));
     
     -- copy file to local CLOB
     begin
@@ -798,7 +798,7 @@ as
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
     
     -- Request file from FTP server
-    do_command(c_ftp_retrieve || p_from_file);
+    do_command(c_ftp_retrieve || p_from_file, code_tab(150));
   
     -- copy file to local BLOB
     begin
@@ -910,7 +910,7 @@ as
     end case;
     
     get_data_connection(l_transfer_type);
-    do_command(c_ftp_store || p_to_file);
+    do_command(c_ftp_store || p_to_file, code_tab(150));
   
     -- write stream to the FTP server
     l_length := coalesce(dbms_lob.getlength(p_blob), dbms_lob.getlength(p_clob));
