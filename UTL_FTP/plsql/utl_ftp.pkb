@@ -143,7 +143,7 @@ create or replace package body utl_ftp as
     when others then
       pit.leave_detailed;
       raise;
-  end;
+  end convert_directory_list;
   
   
   procedure check_response(
@@ -189,24 +189,35 @@ create or replace package body utl_ftp as
    *        to the calling envorinment, e.g. as a pipelined function
    */
   procedure get_response(
-    p_command in varchar2,
-    p_expected_code in code_tab)
+    p_expected_code in code_tab,
+    p_multi_response in boolean)
   as
     l_response varchar2(32767);
     l_reply ftp_reply_t;
   begin
     pit.enter_detailed('get_response', c_pkg);
-    if utl_tcp.available(g_server.control_connection, 0.5) > 0 then
-      l_response := utl_tcp.get_line(g_server.control_connection, true);
-      -- render response and push to list
-      if regexp_like(l_response, '^[0-9]{3}') then
-        l_reply := ftp_reply_t(to_number(substr(l_response, 1, 3)), substr(l_response, 5));
-        push_list(g_server.control_reply, l_reply);
-        check_response(p_expected_code, l_reply);
-      end if;
-    else
-      pit.warn(msg.FTP_NO_RESPONSE, msg_args(p_command));
-    end if;
+    loop
+      begin
+        if utl_tcp.available(g_server.control_connection, 0.5) > 0 then
+          l_response := utl_tcp.get_line(g_server.control_connection, true);
+          -- render response and push to list
+          if regexp_like(l_response, '^[0-9]{3}') then
+            l_reply := ftp_reply_t(to_number(substr(l_response, 1, 3)), substr(l_response, 5));
+            push_list(g_server.control_reply, l_reply);
+            check_response(p_expected_code, l_reply);
+          end if;
+          if not p_multi_response then
+            exit;
+          end if;
+        else
+          --pit.warn(msg.FTP_NO_RESPONSE, msg_args(p_command));
+          exit;
+        end if;
+      exception
+        when utl_tcp.end_of_input then
+          exit;
+      end;
+    end loop;
     pit.leave_detailed;
   exception
     when msg.FTP_TRANSIENT_ERROR_ERR or msg.FTP_PERMANENT_ERROR_ERR then
@@ -242,7 +253,7 @@ create or replace package body utl_ftp as
           exit;
       end;
     end loop;
-    pit.enter_detailed;
+    pit.leave_detailed;
   exception
     when others then
       pit.leave_detailed;
@@ -257,7 +268,8 @@ create or replace package body utl_ftp as
    */
   procedure do_command(
     p_command in varchar2,
-    p_expected_code in code_tab default null) 
+    p_expected_code in code_tab default null,
+    p_multi_response boolean default false) 
   as
     l_result pls_integer;
   begin
@@ -267,7 +279,7 @@ create or replace package body utl_ftp as
                   g_server.control_connection, 
                   p_command || utl_tcp.crlf, 
                   length(p_command || utl_tcp.crlf));
-    get_response(p_command, p_expected_code);
+    get_response(p_expected_code, p_multi_response);
     pit.leave_detailed;
   exception
     when others then
@@ -303,7 +315,20 @@ create or replace package body utl_ftp as
       raise;
   end get_data_connection;
  
- 
+  
+  /* Method to close a data connection after data submission */
+  procedure close_data_connection
+  as
+  begin
+    pit.enter_detailed('close_data_connection', c_pkg);
+    utl_tcp.close_connection(g_server.data_connection);
+    get_response(code_tab(226), false);
+    pit.leave_detailed;
+  exception
+    when others then
+      pit.leave_detailed;
+      raise;
+  end close_data_connection;
   /* Method to issue a command and read data from the data connection
    * %param p_command Command to execute
    * %param p_expected_code Optional list of result codes expected on the control connection
@@ -323,7 +348,7 @@ create or replace package body utl_ftp as
     get_data_connection;
     do_command(p_command, p_expected_code);
     read_reply(p_command);
-    get_response(p_command, code_tab(226));
+    get_response(code_tab(226), true);
     pit.leave_detailed;
   exception
     when others then
@@ -426,9 +451,9 @@ create or replace package body utl_ftp as
         remote_host => g_server.host_name,
         remote_port => g_server.port,
         tx_timeout => 30);
-    get_response('login', code_tab(220));
+    get_response(code_tab(220), true);
     do_command(c_ftp_user_name || g_server.user_name, code_tab(331));
-    do_command(c_ftp_password || g_server.password, code_tab(230));
+    do_command(c_ftp_password || g_server.password, code_tab(230, 220));
     pit.leave_mandatory;
   exception
     when others then
@@ -602,6 +627,7 @@ create or replace package body utl_ftp as
     auto_login(p_ftp_server);
     
     set_transfer_type(p_transfer_type);
+    get_data_connection;
     do_command(c_ftp_retrieve || p_from_file);
     
     l_out_file := utl_file.fopen(p_to_directory, p_to_file, g_open_mode, c_chunk_size);
@@ -625,7 +651,7 @@ create or replace package body utl_ftp as
     end;
     utl_file.fclose(l_out_file);
     read_reply('get');
-    utl_tcp.close_connection(g_server.data_connection);
+    close_data_connection;
     
     auto_logout;
     pit.leave_mandatory;
@@ -634,7 +660,7 @@ create or replace package body utl_ftp as
       if utl_file.is_open(l_out_file) then
         utl_file.fclose(l_out_file);
       end if;
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end get;
   
@@ -652,6 +678,7 @@ create or replace package body utl_ftp as
     auto_login(p_ftp_server);
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
     set_transfer_type(p_transfer_type);
+    get_data_connection;
     
     -- Request file from FTP server
     do_command(c_ftp_retrieve || p_from_file);
@@ -670,13 +697,13 @@ create or replace package body utl_ftp as
         pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
     end;
     read_reply('get');
-    utl_tcp.close_connection(g_server.data_connection);
+    close_data_connection;
   
     auto_logout;
     pit.leave_mandatory;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end get;
     
@@ -693,6 +720,7 @@ create or replace package body utl_ftp as
     auto_login(p_ftp_server);
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
     set_transfer_type(c_type_binary);
+    get_data_connection;
     
     -- Request file from FTP server
     do_command(c_ftp_retrieve || p_from_file);
@@ -713,13 +741,13 @@ create or replace package body utl_ftp as
     
     -- Read confirmation and clean up
     read_reply('get');
-    utl_tcp.close_connection(g_server.data_connection);
+    close_data_connection;
   
     auto_logout;
     pit.leave_mandatory;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end get;
  
@@ -741,12 +769,15 @@ create or replace package body utl_ftp as
   begin
     pit.enter_mandatory('put', c_pkg);
     auto_login(p_ftp_server);
-    do_command(c_ftp_store || p_to_file);
+    set_transfer_type(p_transfer_type);
+    get_data_connection;
+    do_command(c_ftp_store || p_to_file, code_tab(150));
   
     -- open local file
     l_bfile := bfilename(p_from_directory, p_from_file);
     dbms_lob.fileopen(l_bfile, dbms_lob.file_readonly);
     l_length := dbms_lob.getlength(l_bfile);
+    pit.verbose(msg.FTP_FILE_READ, msg_args(p_from_directory, p_from_file, to_char(l_length)));
   
     -- copy local file to FTP server
     while l_idx <= l_length loop
@@ -762,16 +793,16 @@ create or replace package body utl_ftp as
     pit.info(msg.FTP_FILE_SENT);
   
     dbms_lob.fileclose(l_bfile);
-    utl_tcp.close_connection(g_server.data_connection);
+    close_data_connection;
   
     auto_logout;
     pit.leave_mandatory;
   exception
     when others then
-      if dbms_lob.fileisopen(l_bfile) = 1 then
+      if l_bfile is not null and dbms_lob.fileisopen(l_bfile) = 1 then
         dbms_lob.fileclose(l_bfile);
       end if;
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end put;
   
@@ -800,7 +831,7 @@ create or replace package body utl_ftp as
     else
       raise msg.FTP_NO_PAYLOAD_ERR;
     end case;
-    
+    get_data_connection;
     do_command(c_ftp_store || p_to_file);
   
     -- write stream to the FTP server
@@ -817,25 +848,44 @@ create or replace package body utl_ftp as
       l_idx := l_idx + l_amount;
     end loop;
     pit.info(msg.FTP_FILE_SENT);
-  
+    close_data_connection;
     auto_logout;
     pit.leave_mandatory;
   exception
     when msg.FTP_NO_PAYLOAD_ERR then
-      null;
+      logout;
       pit.stop(msg.FTP_NO_PAYLOAD);
     when others then
-      pit.stop(msg.SQL_ERROR);
+      logout;
+      pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end put;
+  
+  
+  procedure execute_command(
+    p_command in varchar2,
+    p_ftp_server in varchar2 default null)
+  as
+  begin
+    pit.enter_mandatory('get_server_status', c_pkg);
+    auto_login(p_ftp_server);
+    do_command(p_command);
+    auto_logout;
+  exception
+    when others then
+      logout;
+      pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
+  end execute_command;
+    
  
  
-  function get_server_status
+  function get_server_status(
+    p_ftp_server in varchar2 default null)
     return char_table pipelined
   as
     l_result number;
   begin
     pit.enter_mandatory('get_server_status', c_pkg);
-    
+    auto_login(p_ftp_server);
     -- get server and execute command locally
     -- Do not call DO_COMMAND here, as C_FTP_STATUS retrieves information over control connection
     -- rather than data connection. 
@@ -850,9 +900,13 @@ create or replace package body utl_ftp as
           exit;
       end;
     end loop;
-    
+    auto_logout;
     pit.leave_mandatory;
     return;
+  exception
+    when others then
+      logout;
+      pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end get_server_status;
     
 
@@ -893,7 +947,7 @@ create or replace package body utl_ftp as
     return;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end get_help;
 
@@ -921,6 +975,10 @@ create or replace package body utl_ftp as
     auto_logout;
     pit.leave_mandatory;
     return;
+  exception
+    when others then
+      logout;
+      pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end list_directory;
   
   
@@ -937,7 +995,7 @@ create or replace package body utl_ftp as
     pit.leave_mandatory;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end create_directory;
 
@@ -954,7 +1012,7 @@ create or replace package body utl_ftp as
     pit.leave_mandatory;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end remove_directory;
 
@@ -973,7 +1031,7 @@ create or replace package body utl_ftp as
     pit.leave_mandatory;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end rename_file;
 
@@ -990,7 +1048,7 @@ create or replace package body utl_ftp as
     pit.leave_mandatory;
   exception
     when others then
-      auto_logout;
+      logout;
       pit.stop(msg.SQL_ERROR, msg_args(sqlerrm));
   end delete_file;
 

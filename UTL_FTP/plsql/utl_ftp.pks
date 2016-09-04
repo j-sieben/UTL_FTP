@@ -155,10 +155,21 @@ as
     p_blob in blob default null,
     p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_ascii);
+    
+    
+  /* Method to pass arbitrary commands to the FTP server (no data transmission)
+   * %param p_ftp_server Nickname of the FTP-server
+   * %param p_ftp_server Nickname of the FTP-server
+   * %usage Called to pass any command to the FTP server
+   */
+  procedure execute_command(
+    p_command in varchar2,
+    p_ftp_server in varchar2 default null);
   
   
   /* Method GET_SERVER_STATUS reads the actual status of the FTP server and
    * returns it as an instance of CHAR_TABLE.
+   * %param p_ftp_server Nickname of the FTP-server
    * %return Instance of type CHAR_TABLE with the status from the FTP server
    * %usage This method is designed to be used from within SQL in the form
    *        <pre>select * from table(utl_ftp.get_server_status('MY_FTP'));</pre>
@@ -168,7 +179,8 @@ as
    *        to the server and disconnects after completion automatically.
    *        Only available with explicit sessions, no AUTO LOGIN
    */  
-  function get_server_status
+  function get_server_status(
+    p_ftp_server in varchar2 default null)
     return char_table pipelined;
     
   
