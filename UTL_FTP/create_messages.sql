@@ -34,6 +34,17 @@ begin
     p_message_language => 'GERMAN');
     
   pit_admin.merge_message(
+    p_message_name => 'FTP_FILE_READ',
+    p_message_text => 'File [#1#] #2# opened succesfully. Size: #3#',
+    p_message_language => 'AMERICAN',
+    p_severity => 60);
+    
+  pit_admin.translate_message(
+    p_message_name => 'FTP_FILE_READ',
+    p_message_text => 'Datei [#1#] #2# erfolgreich geöffnet. Größe: #3#',
+    p_message_language => 'GERMAN');
+    
+  pit_admin.merge_message(
     p_message_name => 'FTP_RESPONSE_EXPECTED',
     p_message_text => 'OK',
     p_message_language => 'AMERICAN',
@@ -103,6 +114,28 @@ begin
   pit_admin.translate_message(
     p_message_name => 'FTP_NO_PAYLOAD',
     p_message_text => 'Keine Daten zur Übermittlung bereitgestellt. Verarbeitung wird abgebrochen.',
+    p_message_language => 'GERMAN');
+    
+  pit_admin.merge_message(
+    p_message_name => 'FTP_INVALID_SERVER_NAME',
+    p_message_text => 'Server name must not exceed 30 chars',
+    p_message_language => 'AMERICAN',
+    p_severity => 30);
+    
+  pit_admin.translate_message(
+    p_message_name => 'FTP_INVALID_SERVER_NAME',
+    p_message_text => 'Der Name des Servers darf höchstens 30 Zeichen umfassen.',
+    p_message_language => 'GERMAN');
+    
+  pit_admin.merge_message(
+    p_message_name => 'FTP_MAX_TIMEOUT',
+    p_message_text => 'Timeout must not be less than 0.1 and more than 30 seconds',
+    p_message_language => 'AMERICAN',
+    p_severity => 30);
+    
+  pit_admin.translate_message(
+    p_message_name => 'FTP_MAX_TIMEOUT',
+    p_message_text => 'Die Länge des Timeouts muss zwischen 0,1 und 30 Sekunden liegen.',
     p_message_language => 'GERMAN');
     
   pit_admin.create_message_package;
