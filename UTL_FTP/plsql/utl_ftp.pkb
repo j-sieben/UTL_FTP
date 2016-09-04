@@ -288,15 +288,46 @@ create or replace package body utl_ftp as
   end do_command;
   
   
+  /* Methode zur Einstellung des Uebertragungserhaltens (C_TYPE_BINARY|C_TYPE_ASCII)
+   * %param p_connection Verbindung zum FTP-Server
+   * %param p_transfer_mode Typ der Datenuebertragung
+   * %usage Wird intern verwendet, um CLOB als C_TYPE_ASCII und BLOB als
+   *        C_TYPE_BINARY zu uebertragen.
+   */
+  procedure set_transfer_type(
+    p_transfer_mode in varchar2) 
+  as
+  begin
+    pit.enter_optional('binary', c_pkg);
+    if p_transfer_mode = c_type_binary then
+      do_command(c_ftp_transfer_binary, code_tab(200));
+      g_binary := true;
+      g_open_mode := c_write_byte;
+    else
+      do_command(c_ftp_transfer_ascii, code_tab(200));
+      g_binary := false;
+      g_open_mode := c_write_text;
+    end if;
+    pit.leave_optional;
+  exception
+    when others then
+      pit.leave_optional;
+      raise;
+  end set_transfer_type;
+  
+  
   /* Method to get a passive data connection to the FTP server
    * %usage Sets data connection for the actually selected FTP server
    */
-  procedure get_data_connection
+  procedure get_data_connection(
+    p_transfer_type in varchar2)
   as
     l_message varchar2(25);
     l_port number(10);
   begin
     pit.enter_detailed('get_data_connection', c_pkg);
+    
+    set_transfer_type(p_transfer_type);
     do_command(c_ftp_passive, code_tab(227));
     
     -- Get port number from response
@@ -329,6 +360,8 @@ create or replace package body utl_ftp as
       pit.leave_detailed;
       raise;
   end close_data_connection;
+  
+  
   /* Method to issue a command and read data from the data connection
    * %param p_command Command to execute
    * %param p_expected_code Optional list of result codes expected on the control connection
@@ -340,12 +373,13 @@ create or replace package body utl_ftp as
    *        - check whether data connection is closed
    */
   procedure read_data(
+    p_transfer_type in varchar2,
     p_command in varchar2,
     p_expected_code in code_tab default null)
   as
   begin
     pit.enter_detailed('read_data', c_pkg);
-    get_data_connection;
+    get_data_connection(p_transfer_type);
     do_command(p_command, p_expected_code);
     read_reply(p_command);
     get_response(code_tab(226), true);
@@ -355,34 +389,6 @@ create or replace package body utl_ftp as
       pit.leave_detailed;
       raise;
   end read_data;
-  
-  
-  /* Methode zur Einstellung des Uebertragungserhaltens (C_TYPE_BINARY|C_TYPE_ASCII)
-   * %param p_connection Verbindung zum FTP-Server
-   * %param p_transfer_mode Typ der Datenuebertragung
-   * %usage Wird intern verwendet, um CLOB als C_TYPE_ASCII und BLOB als
-   *        C_TYPE_BINARY zu uebertragen.
-   */
-  procedure set_transfer_type(
-    p_transfer_mode in varchar2) 
-  as
-  begin
-    pit.enter_optional('binary', c_pkg);
-    if p_transfer_mode = c_type_binary then
-      do_command(c_ftp_transfer_binary, code_tab(200));
-      g_binary := true;
-      g_open_mode := c_write_byte;
-    else
-      do_command(c_ftp_transfer_ascii, code_tab(200));
-      g_binary := false;
-      g_open_mode := c_write_text;
-    end if;
-    pit.leave_optional;
-  exception
-    when others then
-      pit.leave_optional;
-      raise;
-  end set_transfer_type;
   
   
   /* Accessor to internal server list that stores registered servers
@@ -626,8 +632,7 @@ create or replace package body utl_ftp as
     pit.enter_mandatory('get', c_pkg);
     auto_login(p_ftp_server);
     
-    set_transfer_type(p_transfer_type);
-    get_data_connection;
+    get_data_connection(p_transfer_type);
     do_command(c_ftp_retrieve || p_from_file);
     
     l_out_file := utl_file.fopen(p_to_directory, p_to_file, g_open_mode, c_chunk_size);
@@ -677,8 +682,8 @@ create or replace package body utl_ftp as
     pit.enter_mandatory('get', c_pkg);
     auto_login(p_ftp_server);
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
-    set_transfer_type(p_transfer_type);
-    get_data_connection;
+    
+    get_data_connection(p_transfer_type);
     
     -- Request file from FTP server
     do_command(c_ftp_retrieve || p_from_file);
@@ -719,8 +724,8 @@ create or replace package body utl_ftp as
     pit.enter_mandatory('get', c_pkg);
     auto_login(p_ftp_server);
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
-    set_transfer_type(c_type_binary);
-    get_data_connection;
+    
+    get_data_connection(c_type_binary);
     
     -- Request file from FTP server
     do_command(c_ftp_retrieve || p_from_file);
@@ -769,8 +774,8 @@ create or replace package body utl_ftp as
   begin
     pit.enter_mandatory('put', c_pkg);
     auto_login(p_ftp_server);
-    set_transfer_type(p_transfer_type);
-    get_data_connection;
+    
+    get_data_connection(p_transfer_type);
     do_command(c_ftp_store || p_to_file, code_tab(150));
   
     -- open local file
@@ -820,18 +825,21 @@ create or replace package body utl_ftp as
     l_amount binary_integer := c_chunk_size;
     l_idx integer := 1;
     l_length integer;
+    l_transfer_type char(1 byte);
   begin
     pit.enter_mandatory('put', c_pkg);
     auto_login(p_ftp_server);
+    
     case   
     when p_blob is not null then
-      set_transfer_type(c_type_binary);
+      l_transfer_type := c_type_binary;
     when p_clob is not null then
-      set_transfer_type(p_transfer_type);
+      l_transfer_type := p_transfer_type;
     else
       raise msg.FTP_NO_PAYLOAD_ERR;
     end case;
-    get_data_connection;
+    
+    get_data_connection(l_transfer_type);
     do_command(c_ftp_store || p_to_file);
   
     -- write stream to the FTP server
@@ -848,6 +856,7 @@ create or replace package body utl_ftp as
       l_idx := l_idx + l_amount;
     end loop;
     pit.info(msg.FTP_FILE_SENT);
+    
     close_data_connection;
     auto_logout;
     pit.leave_mandatory;
@@ -963,8 +972,7 @@ create or replace package body utl_ftp as
     
     auto_login(p_ftp_server);
 
-    set_transfer_type(c_type_binary);
-    read_data(c_ftp_list || p_directory, code_tab(150));
+    read_data(c_type_binary, c_ftp_list || p_directory, code_tab(150));
     l_data_reply := g_server.data_reply;
     if l_data_reply is not null then
       for i in l_data_reply.first .. l_data_reply.last loop
