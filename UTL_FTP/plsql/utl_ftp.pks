@@ -1,4 +1,4 @@
-create or replace package utl_ftp 
+create or replace package utl_ftp
   authid definer
 as
   -- --------------------------------------------------------------------------
@@ -7,7 +7,7 @@ as
   -- Description  : Simple FTP-API for in database use
   -- Requirements : UTL_TCP
   -- --------------------------------------------------------------------------
-  
+
   c_type_binary constant char(1 byte) := 'I';
   c_type_ascii constant char(1 byte) := 'A';
 
@@ -25,8 +25,8 @@ as
    *        be written to table FTP_SERVERS to allow for automatic registration
    *        upon initialization of the package.
    *        CAUTION: Nicknames are unique and case insensitive.
-   *        A server with the same nickname as an existing server will be 
-   *        overwritten with the respective settings. 
+   *        A server with the same nickname as an existing server will be
+   *        overwritten with the respective settings.
    *        The user is responsible to take care of uniqueness and correct use!
    */
   procedure register_ftp_server(
@@ -36,8 +36,8 @@ as
     p_user_name in varchar2 default 'anonymous',
     p_password in varchar2 default 'foo',
     p_permanent in boolean default true);
-    
-    
+
+
   /* Method to un-register a registered server from the server list
    * %param p_ftp_server Nickname of the server to unregister
    * %usage This method will un-register the FTP server both from the actual
@@ -47,10 +47,10 @@ as
    */
   procedure unregister_ftp_server(
     p_ftp_server in varchar2);
-    
-    
+
+
   /* Setter to adjust timeout wait time for the respective FTP-Server
-   * %param p_duration Time in seconds the service waits for responses from 
+   * %param p_duration Time in seconds the service waits for responses from
    *        the FTP-Server
    * %usage If the FTP server responses to a command it may take a while until
    *        the result code of that operation returns. Here you can adjust how long
@@ -59,8 +59,8 @@ as
    */
   procedure set_timeout(
     p_duration in number);
-    
-    
+
+
   /* Method to explicitly start a FTP session
    * %param p_ftp_server Nickname of the registered FTP server to connect to
    * %usage All commands have an auto logon option that enables them to automatically
@@ -72,8 +72,8 @@ as
    */
   procedure login(
     p_ftp_server in varchar2);
-    
-    
+
+
   /* Method to close an explicitly opened FTP session
    * %usage Called to finish the explicit FTP session opened by LOGIN.
    *        Please make sure to explicitly close all explicitly opened sessions
@@ -81,13 +81,13 @@ as
    */
   procedure logout;
 
-    
+
   /* COMMANDS */
   /* Procedure to read a file from the FTP server and copy it to the local filesystem
    * %param p_from_file Name of the file to retrieve
    * %param p_to_directory Name of an oracle directory to store the file at
    * %param p_to_file local file name
-   * %param p_ftp_server Nickname of the registered server to read from. Required 
+   * %param p_ftp_server Nickname of the registered server to read from. Required
    *        in implicit session mode only
    * %param p_transfer_type Type of data transfer. Choose between BINARY and ASCII.
    *        Defaults to BINARY
@@ -102,12 +102,12 @@ as
     p_to_file in varchar2,
     p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary);
-    
-    
+
+
   /* Overloaded method to read a file from an FTP server to a local CLOB
    * %param p_from_file Name of the file to retrieve
    * %param p_data Out parameter with the file content as CLOB
-   * %param p_ftp_server Nickname of the registered server to read from. Required 
+   * %param p_ftp_server Nickname of the registered server to read from. Required
    *        in implicit session mode only
    * %param p_transfer_type Optional parameter to choose betwen BINARY or ASCII
    *        file transmission. Defaults to BINARY
@@ -118,10 +118,10 @@ as
     p_data out nocopy clob,
     p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary);
-    
-    
+
+
   /* Overloaded method to read a file from an FTP server to a local BLOB
-   * %param p_ftp_server Nickname of the registered server to read from. Required 
+   * %param p_ftp_server Nickname of the registered server to read from. Required
    *        in implicit session mode only
    * %param p_from_file Name of the file to retrieve
    * %param p_data Out parameter with the file content as BLOB
@@ -131,13 +131,13 @@ as
     p_from_file in varchar2,
     p_data out nocopy blob,
     p_ftp_server in varchar2 default null);
-    
-  
+
+
   /* Method to copy a local file to the FTP server
    * %param p_from_dir Name of an oracle directory that contains the file to copy
    * %param p_from_file Name of the local file
    * %param p_to_file Path and name of the remote file
-   * %param p_ftp_server Nickname of the registered server to write. Required 
+   * %param p_ftp_server Nickname of the registered server to write. Required
    *        in implicit session mode only
    * %param p_transfer_type Type of data transfer (C_TYPE_BINARY|C_TYPE_ASCII),
    *        defaults to C_TYPE_BINARY
@@ -151,13 +151,13 @@ as
     p_to_file in varchar2,
     p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_binary);
-    
-    
+
+
   /* Method to copy a local CLOB/BLOB instance to a file on the FTP server
    * %param p_to_file Path and name of the file on the FTP server
    * %param p_clob Optional CLOB instance to copy to the FTP server
    * %param p_clob Optional BLOB instance to copy to the FTP server
-   * %param p_ftp_server Nickname of the registered server to write to. Required 
+   * %param p_ftp_server Nickname of the registered server to write to. Required
    *        in implicit session mode only
    * %param p_transfer_type If the CLOB parameter is used, this parameter can
    *        be set to switch transfer mode to BINARY instead of ASCII
@@ -171,25 +171,25 @@ as
     p_blob in blob default null,
     p_ftp_server in varchar2 default null,
     p_transfer_type in varchar2 default c_type_ascii);
-  
-  
+
+
   /* Method GET_SERVER_STATUS reads the actual status of the FTP server and
    * returns it as an instance of CHAR_TABLE.
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %return Instance of type CHAR_TABLE with the status from the FTP server
    * %usage This method is designed to be used from within SQL in the form
    *        <pre>select * from table(utl_ftp.get_server_status('MY_FTP'));</pre>
-   *        Output is meant to be read by humans only, so no processing of the 
+   *        Output is meant to be read by humans only, so no processing of the
    *        response is made.
    *        If used without opening a session prior to this call, it connects
    *        to the server and disconnects after completion automatically.
-   */  
+   */
   function get_server_status(
     p_ftp_server in varchar2 default null)
     return char_table pipelined;
-    
-  
+
+
   /* Method to retrieve the control log as a data structure for further reference
    * %usage In an explicit session (explicitly opened by calling LOGON), the
    *        list of responses from the FTP server is collected in a local variable.
@@ -200,10 +200,20 @@ as
     return ftp_reply_tab pipelined;
     
     
+  /* Overloaded version that returns the control log as a clob-instance
+   * %usage In an explicit session (explicitly opened by calling LOGON), the
+   *        list of responses from the FTP server is collected in a local variable.
+   *        It can be retrieved using this method as a clob instance.
+   *        Only available in active explicit session, no AUTO LOGIN
+   */
+  function get_control_log_text
+    return clob;
+
+
   /* Command to retrieve help from the FTP server
    * %param p_command Optional name of the command you want to get help for.
    *        If ommited, general help is returned
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %usage Call this method to retrieve help information from the FTP server.
    *        The output is not processed and intended to be consumed by human
@@ -213,50 +223,50 @@ as
     p_command in varchar2 default null,
     p_ftp_server in varchar2 default null)
     return char_table pipelined;
-    
-  
+
+
   /* Method to retrieve a directory listing of the directory specified
    * %param p_directory Optional path to the directory you require a listing for
    *        if ommited, the actual working directory is returned
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %usage This methods returns a processed version of the MLSD output in that
    *        it extracts the facts into separate columns and makes them accessible
    *        as a SQL table using the table function.
-   *        Example: <pre>select * from table(utl_table('MY_FTP', '/path/'));</pre>
+   *        Example: <pre>select * from table(utl_table('/path/', 'MY_FTP'));</pre>
    */
   function list_directory(
     p_directory in varchar2 default null,
     p_ftp_server in varchar2 default null)
     return ftp_list_tab pipelined;
-  
-  
+
+
   /* Creates a directory on the FTP server
    * %param p_directory Name of the directory to create
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %usage Is called to create a new directory on the FTP server
    */
   procedure create_directory(
     p_directory in varchar2,
     p_ftp_server in varchar2 default null);
-  
-  
+
+
   /* Removes a directory on the FTP server
    * %param p_directory Name of the directory to remove
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %usage Is called to remove a directory on the FTP server
    */
   procedure remove_directory(
     p_directory in varchar2,
     p_ftp_server in varchar2 default null);
-  
-  
+
+
   /* Renames a file on the FTP server
    * %param p_from Name of the existing file
    * %param p_to New name of the file including relative path
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %usage Is called to rename a file on the FTP server
    *        Useful to indicate completion of an upload by renaming the file after
@@ -267,11 +277,11 @@ as
     p_from in varchar2,
     p_to in varchar2,
     p_ftp_server in varchar2 default null);
-  
-  
+
+
   /* Deletes a file from the FTP server
    * %param p_file Name of the file to delete
-   * %param p_ftp_server Nickname of the FTP-server. Required in implicit 
+   * %param p_ftp_server Nickname of the FTP-server. Required in implicit
    *        session mode only
    * %usage Is called to delete a file from the FTP server
    */
