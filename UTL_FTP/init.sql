@@ -8,9 +8,13 @@ whenever sqlerror exit
 clear screen
 
 col install_user new_val INSTALL_USER format a30
+col default_language new_val DEFAULT_LANGUAGE format a30
 
-select upper('&1.') install_user
-  from dual;
+select upper('&1.') install_user,
+       value default_language
+  from V$NLS_VALID_VALUES
+ where parameter = 'LANGUAGE'
+   and value = upper('&2.');
 
 
 define INSTALL_ON_DEV = false

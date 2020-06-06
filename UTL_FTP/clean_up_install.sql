@@ -38,5 +38,7 @@ begin
         raise;
     end;
   end loop;
+  
+  pit_admin.delete_message_group('UTL_FTP', true);
 end;
 /

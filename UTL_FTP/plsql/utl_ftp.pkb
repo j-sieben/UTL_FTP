@@ -7,7 +7,6 @@ as
   -- Requirements : UTL_TCP
   -- --------------------------------------------------------------------------
 
-  c_pkg constant varchar2(30 byte) := $$PLSQL_UNIT;
   c_cr constant varchar2(2 byte) := chr(13);
   c_chunk_size constant number := 32767;
   c_write_byte constant varchar2(2) := 'wb';
@@ -112,7 +111,8 @@ as
     p_ftp_server in varchar2)
   as
   begin
-    pit.enter_optional('get_ftp_server', c_pkg);
+    pit.enter_optional(
+      p_params => msg_params(msg_param('p_ftp_server', p_ftp_server)));
     if g_server_list.exists(upper(p_ftp_server)) then
       g_server := g_server_list(upper(p_ftp_server));
     else
@@ -142,7 +142,8 @@ as
 
     c_date_format constant varchar2(20) := 'YYYYMMDDHH24MISS';
   begin
-    pit.enter_detailed('convert_directory_list', c_pkg);
+    pit.enter_detailed(
+      p_params => msg_params(msg_param('p_entry', p_entry)));
     l_ftp_list := ftp_list_t();
 
     -- extract file/folder name from response
@@ -194,7 +195,7 @@ as
   as
     l_ok boolean := false;
   begin
-    pit.enter_detailed('check_response', c_pkg);
+    pit.enter_detailed;
 
     -- check permanent and transient errors, expected outcome
     case
@@ -242,7 +243,7 @@ as
     l_response varchar2(32767);
     l_reply ftp_reply_t;
   begin
-    pit.enter_detailed('get_response', c_pkg);
+    pit.enter_detailed;
     loop
       begin
         if utl_tcp.available(g_server.control_connection, g_timeout) > 0 then
@@ -287,7 +288,8 @@ as
   as
     l_reply ftp_reply_t;
   begin
-    pit.enter_detailed('read_reply', c_pkg);
+    pit.enter_detailed(
+      p_params => msg_params(msg_param('p_command', p_command)));
     -- designed as a basic loop to allow for reporting of unnecessary calls
     loop
       begin
@@ -325,8 +327,8 @@ as
   as
     l_result pls_integer;
   begin
-    pit.enter_detailed('do_command', c_pkg,
-      msg_params(msg_param('p_command', p_command)));
+    pit.enter_detailed(
+      p_params => msg_params(msg_param('p_command', p_command)));
 
     l_result := UTL_TCP.write_text(
                   g_server.control_connection,
@@ -351,7 +353,8 @@ as
     p_transfer_mode in varchar2)
   as
   begin
-    pit.enter_optional('binary', c_pkg);
+    pit.enter_optional(
+      p_params => msg_params(msg_param('p_transfer_mode', p_transfer_mode)));
 
     if p_transfer_mode = c_type_binary then
       do_command(c_ftp_transfer_binary, code_tab(200));
@@ -381,7 +384,8 @@ as
     l_message varchar2(25);
     l_port number(10);
   begin
-    pit.enter_detailed('get_data_connection', c_pkg);
+    pit.enter_detailed(
+      p_params => msg_params(msg_param('p_transfer_type', p_transfer_type)));
 
     set_transfer_type(p_transfer_type);
     do_command(c_ftp_passive, code_tab(227));
@@ -407,9 +411,11 @@ as
   procedure close_data_connection
   as
   begin
-    pit.enter_detailed('close_data_connection', c_pkg);
+    pit.enter_detailed;
+    
     utl_tcp.close_connection(g_server.data_connection);
     get_response(code_tab(226), false);
+    
     pit.leave_detailed;
   exception
     when others then
@@ -435,7 +441,10 @@ as
     p_expected_code in code_tab default null)
   as
   begin
-    pit.enter_detailed('read_data', c_pkg);
+    pit.enter_detailed(
+      p_params => msg_params(
+                    msg_param('p_transfer_type', p_transfer_type),
+                    msg_param('p_command', p_command)));
 
     get_data_connection(p_transfer_type);
     do_command(p_command, p_expected_code);
@@ -458,7 +467,7 @@ as
       select upper(ftp_id) ftp_id, ftp_host_name, ftp_port, ftp_user_name, ftp_password
         from ftp_server;
   begin
-    pit.enter_optional('initialize', c_pkg);
+    pit.enter_optional;
 
     -- adjust timeout duration
     g_timeout := 0.5;
@@ -486,7 +495,7 @@ as
   procedure login
   as
   begin
-    pit.enter_mandatory('login', c_pkg);
+    pit.enter_mandatory;
 
     -- Initialize REPLY collections
     g_server.control_reply := ftp_reply_tab();
@@ -522,7 +531,8 @@ as
     p_ftp_server in varchar2)
   as
   begin
-    pit.enter_optional('auto_login', c_pkg);
+    pit.enter_optional(
+      p_params => msg_params(msg_param('p_ftp_server', p_ftp_server)));
 
     if g_server.host_name is null then
       if p_ftp_server is not null then
@@ -548,7 +558,7 @@ as
   procedure auto_logout
   as
   begin
-    pit.enter_optional('auto_logout', c_pkg);
+    pit.enter_optional;
 
     if g_server.auto_session then
       logout;
@@ -572,7 +582,15 @@ as
   as
     l_ftp_server ftp_server_rec;
   begin
-    pit.enter_mandatory('register_ftp_server', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_ftp_server', p_ftp_server),
+                    msg_param('p_host_name', p_host_name),
+                    msg_param('p_port', p_port),
+                    msg_param('p_user_name', p_user_name),
+                    msg_param('p_password', lpad('*', length(p_password), '*')),
+                    msg_param('p_permanent', case when p_permanent then 'true' else 'false' end)));
+    
     pit.assert(length(p_ftp_server) <= 30, msg.FTP_INVALID_SERVER_NAME);
     pit.assert_not_null(p_host_name);
     pit.assert_not_null(p_port);
@@ -614,7 +632,8 @@ as
     p_ftp_server in varchar2)
   as
   begin
-    pit.enter_mandatory('unregister_ftp_server', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(msg_param('p_ftp_server', p_ftp_server)));
 
     if g_server_list.exists(upper(p_ftp_server)) then
       g_server_list.delete(upper(p_ftp_server));
@@ -634,9 +653,12 @@ as
     p_duration in number)
   as
   begin
-    pit.enter_mandatory('set_timeout', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(msg_param('p_duration', to_char(p_duration))));
+      
     pit.assert(p_duration between 0.1 and 30, msg.FTP_MAX_TIMEOUT);
     g_timeout := p_duration;
+    
     pit.leave_mandatory;
   end set_timeout;
 
@@ -645,7 +667,8 @@ as
     p_ftp_server in varchar2)
   as
   begin
-    pit.enter_mandatory('login', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(msg_param('p_ftp_server', p_ftp_server)));
 
     get_ftp_server(p_ftp_server);
     login;
@@ -660,7 +683,7 @@ as
   procedure logout
   as
   begin
-    pit.enter_mandatory('logout', c_pkg);
+    pit.enter_mandatory;
 
     do_command(c_ftp_quit, code_tab(221));
     utl_tcp.close_connection(g_server.control_connection);
@@ -686,7 +709,14 @@ as
     l_buffer chunk_type;
     l_raw_buffer raw_chunk_type;
   begin
-    pit.enter_mandatory('get', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_from_file', p_from_file),
+                    msg_param('p_to_directory', p_to_directory),
+                    msg_param('p_to_file', p_to_file),
+                    msg_param('p_ftp_server', p_ftp_server),
+                    msg_param('p_transfer_type', p_transfer_type)));
+                    
     auto_login(p_ftp_server);
     get_data_connection(p_transfer_type);
 
@@ -718,6 +748,7 @@ as
     close_data_connection;
 
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when others then
@@ -738,7 +769,12 @@ as
     l_amount pls_integer;
     l_buffer chunk_type;
   begin
-    pit.enter_mandatory('get', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_from_file', p_from_file),
+                    msg_param('p_ftp_server', p_ftp_server),
+                    msg_param('p_transfer_type', p_transfer_type)));
+                    
     auto_login(p_ftp_server);
     get_data_connection(p_transfer_type);
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
@@ -763,7 +799,10 @@ as
 
     close_data_connection;
     auto_logout;
-    pit.leave_mandatory;
+    
+    pit.leave_mandatory(
+      p_params => msg_params(
+                    msg_param('p_data', dbms_lob.substr(p_data, 4000, 1))));
   exception
     when others then
       logout;
@@ -779,7 +818,11 @@ as
     l_amount pls_integer;
     l_buffer raw_chunk_type;
   begin
-    pit.enter_mandatory('get', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_from_file', p_from_file),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
     get_data_connection(c_type_binary);
     dbms_lob.createtemporary(p_data, true, dbms_lob.call);
@@ -805,7 +848,9 @@ as
     read_reply('get');
     close_data_connection;
     auto_logout;
-    pit.leave_mandatory;
+    pit.leave_mandatory(
+      p_params => msg_params(
+                    msg_param('Bytes read', to_char(dbms_lob.getlength(p_data)))));
   exception
     when others then
       logout;
@@ -828,7 +873,14 @@ as
     l_length number;
     l_idx number := 1;
   begin
-    pit.enter_mandatory('put', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_from_directory', p_from_directory),
+                    msg_param('p_from_file', p_from_file),
+                    msg_param('p_to_file', p_to_file),
+                    msg_param('p_ftp_server', p_ftp_server),
+                    msg_param('p_transfer_type', p_transfer_type)));
+                    
     auto_login(p_ftp_server);
     get_data_connection(p_transfer_type);
 
@@ -857,6 +909,7 @@ as
     dbms_lob.fileclose(l_bfile);
     close_data_connection;
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when others then
@@ -883,7 +936,14 @@ as
     l_length integer;
     l_transfer_type char(1 byte);
   begin
-    pit.enter_mandatory('put', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_to_file', p_to_file),
+                    msg_param('p_clob', case when p_clob is not null then 'true' else 'false' end),
+                    msg_param('p_blob', case when p_blob is not null then 'true' else 'false' end),
+                    msg_param('p_ftp_server', p_ftp_server),
+                    msg_param('p_transfer_type', p_transfer_type)));
+                    
     auto_login(p_ftp_server);
 
     -- Check type of data stream and set transfer mode
@@ -917,6 +977,7 @@ as
     -- clean up
     close_data_connection;
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when msg.FTP_NO_PAYLOAD_ERR then
@@ -934,7 +995,9 @@ as
   as
     l_result number;
   begin
-    pit.enter_mandatory('get_server_status', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_ftp_server', p_ftp_server)));
     auto_login(p_ftp_server);
 
     -- get server and execute command locally
@@ -953,6 +1016,7 @@ as
     end loop;
 
     auto_logout;
+    
     pit.leave_mandatory;
     return;
   exception
@@ -966,7 +1030,7 @@ as
     return ftp_reply_tab pipelined
   as
   begin
-    pit.enter_mandatory('get_control_log', c_pkg);
+    pit.enter_mandatory;
 
     -- No AUTO_LOGIN here as a control log is only available in an explicit session
     for i in g_server.control_reply.first .. g_server.control_reply.last loop
@@ -986,13 +1050,15 @@ as
         from table(
               utl_ftp.get_control_log);
     l_result clob;
-    l_chunk varchar2(32767);
   begin
+    pit.enter_mandatory;
+    
     dbms_lob.createtemporary(l_result, false, dbms_lob.call);
     for ctl in control_log_cur loop
-      utl_text.append_clob(ctl.msg, l_chunk, l_result);
+      dbms_lob.append(ctl.msg, l_result);
     end loop;
-    utl_text.append_clob('', l_chunk, l_result, true);
+    
+    pit.leave_mandatory;
     return l_result;
   end get_control_log_text;
 
@@ -1005,7 +1071,11 @@ as
     l_command varchar2(100) := trim(c_ftp_help || p_command);
     l_result number;
   begin
-    pit.enter_mandatory('get_help', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_command', p_command),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
 
     -- Execute command locally as this method retrieves data via control connection
@@ -1040,7 +1110,11 @@ as
   as
     l_data_reply ftp_reply_tab;
   begin
-    pit.enter_mandatory('list_directory', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_directory', p_directory),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
 
     read_data(c_type_binary, c_ftp_list || p_directory, code_tab(150));
@@ -1052,6 +1126,7 @@ as
     end if;
 
     auto_logout;
+    
     pit.leave_mandatory;
     return;
   exception
@@ -1067,12 +1142,17 @@ as
   as
     l_ftp_server ftp_server_rec;
   begin
-    pit.enter_mandatory('create_directory', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_directory', p_directory),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
 
     do_command(trim(c_ftp_make_directory || p_directory), code_tab(257));
 
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when others then
@@ -1086,12 +1166,17 @@ as
     p_ftp_server in varchar2 default null)
   as
   begin
-    pit.enter_mandatory('remove_directory', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_directory', p_directory),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
 
     do_command(c_ftp_remove_directory || p_directory, code_tab(250));
 
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when others then
@@ -1106,13 +1191,19 @@ as
     p_ftp_server in varchar2 default null)
   as
   begin
-    pit.enter_mandatory('rename_file', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_from', p_from),
+                    msg_param('p_to', p_to),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
 
     do_command(c_ftp_rename_from || p_from, code_tab(350));
     do_command(c_ftp_rename_to || p_to, code_tab(250));
 
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when others then
@@ -1126,12 +1217,17 @@ as
     p_ftp_server in varchar2 default null)
   as
   begin
-    pit.enter_mandatory('delete_file', c_pkg);
+    pit.enter_mandatory(
+      p_params => msg_params(
+                    msg_param('p_file', p_file),
+                    msg_param('p_ftp_server', p_ftp_server)));
+                    
     auto_login(p_ftp_server);
 
     do_command(c_ftp_delete || p_file, code_tab(250));
 
     auto_logout;
+    
     pit.leave_mandatory;
   exception
     when others then

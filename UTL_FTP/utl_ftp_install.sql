@@ -1,7 +1,14 @@
-define sql_dir=sql/
-define plsql_dir=plsql/
+/* Script to install UTL_FTP
+ * parameter INSTALL_USER: User to install UTL_FTP to
+ * parameter DEFAULT_LANGUAGE: Default language of the PIT installation
+ */
 
 @init.sql
+
+define sql_dir=sql/
+define plsql_dir=plsql/
+define msg_dir =messages/&DEFAULT_LANGUAGE./
+
 
 alter session set current_schema=&INSTALL_USER.;
 
@@ -51,7 +58,7 @@ prompt &s1.Create package UTL_FTP
 show errors
 
 prompt &h2.Create messages
-@create_messages.sql
+@&msg_dir.MessageGroup_UTL_FTP.sql
 
 prompt &h2.Create type bodies
 prompt &s1.Create type body FTP_LIST_T
