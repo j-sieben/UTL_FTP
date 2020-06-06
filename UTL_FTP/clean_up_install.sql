@@ -11,7 +11,7 @@ declare
           select object_name name, object_type type
             from all_objects
            where object_name in (
-                 'FTP_REPLY_TAB', 'FTP_REPLY_T', 'FTPLIST_TAB', 'FTP_LIST_T', -- Typen
+                 'FTP_REPLY_TAB', 'FTP_REPLY_T', 'FTP_LIST_TAB', 'FTP_LIST_T', -- Typen
                  'UTL_FTP', -- Packages
                  '', -- Views
                  'FTP_SERVER',   -- Tabellen
@@ -40,5 +40,7 @@ begin
   end loop;
   
   pit_admin.delete_message_group('UTL_FTP', true);
+  commit;
+  pit_admin.create_message_package;
 end;
 /
