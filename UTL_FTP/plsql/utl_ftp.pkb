@@ -121,7 +121,7 @@ as
     pit.leave_optional;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get_ftp_server;
 
 
@@ -177,7 +177,7 @@ as
     return l_ftp_list;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end convert_directory_list;
 
 
@@ -222,11 +222,11 @@ as
     pit.leave_detailed;
   exception
     when msg.FTP_TRANSIENT_ERROR_ERR then
-      pit.sql_exception(msg.FTP_TRANSIENT_ERROR, msg_args(p_reply.message));
+      pit.handle_exception(msg.FTP_TRANSIENT_ERROR, msg_args(p_reply.message));
     when msg.FTP_PERMANENT_ERROR_ERR then
-      pit.sql_exception(msg.FTP_PERMANENT_ERROR, msg_args(p_reply.message));
+      pit.handle_exception(msg.FTP_PERMANENT_ERROR, msg_args(p_reply.message));
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end check_response;
 
 
@@ -270,7 +270,7 @@ as
     pit.leave_detailed;
   exception
     when others then
-      pit.sql_exception(msg.sql_error, msg_args(sqlerrm));
+      pit.handle_exception(msg.sql_error, msg_args(sqlerrm));
   end get_response;
 
 
@@ -309,7 +309,7 @@ as
   exception
     when others then
       pit.leave_detailed;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end read_reply;
 
 
@@ -340,7 +340,7 @@ as
   exception
     when others then
       pit.leave_detailed;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end do_command;
 
 
@@ -369,7 +369,7 @@ as
     pit.leave_optional;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end set_transfer_type;
 
 
@@ -403,7 +403,7 @@ as
     pit.leave_detailed;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get_data_connection;
 
 
@@ -419,7 +419,7 @@ as
     pit.leave_detailed;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end close_data_connection;
 
 
@@ -454,7 +454,7 @@ as
     pit.leave_detailed;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end read_data;
 
 
@@ -485,7 +485,7 @@ as
     pit.leave_optional;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end initialize;
 
 
@@ -516,7 +516,7 @@ as
     pit.leave_mandatory;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end login;
 
 
@@ -547,7 +547,7 @@ as
     pit.leave_optional;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end auto_login;
 
 
@@ -567,7 +567,7 @@ as
     pit.leave_optional;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end auto_logout;
 
 
@@ -624,7 +624,7 @@ as
     pit.leave_mandatory;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end register_ftp_server;
 
 
@@ -645,7 +645,7 @@ as
     pit.leave_mandatory;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end unregister_ftp_server;
 
 
@@ -676,7 +676,7 @@ as
     pit.leave_mandatory;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end login;
 
 
@@ -692,7 +692,7 @@ as
     pit.leave_mandatory;
   exception
     when others then
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end logout;
 
 
@@ -740,7 +740,7 @@ as
       when utl_tcp.end_of_input then
         pit.info(msg.FTP_FILE_RECEIVED);
       when others then
-        pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+        pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
     end;
 
     utl_file.fclose(l_out_file);
@@ -756,7 +756,7 @@ as
         utl_file.fclose(l_out_file);
       end if;
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get;
 
 
@@ -793,7 +793,7 @@ as
       null;
         pit.info(msg.FTP_FILE_RECEIVED);
       when others then
-        pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+        pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
     end;
     read_reply('get');
 
@@ -806,7 +806,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get;
 
 
@@ -841,7 +841,7 @@ as
         null;
         pit.info(msg.FTP_FILE_RECEIVED);
       when others then
-        pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+        pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
     end;
 
     -- Read confirmation and clean up
@@ -854,7 +854,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get;
 
 
@@ -917,7 +917,7 @@ as
         dbms_lob.fileclose(l_bfile);
       end if;
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end put;
 
 
@@ -982,10 +982,10 @@ as
   exception
     when msg.FTP_NO_PAYLOAD_ERR then
       logout;
-      pit.sql_exception(msg.FTP_NO_PAYLOAD);
+      pit.handle_exception(msg.FTP_NO_PAYLOAD);
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end put;
 
 
@@ -1022,7 +1022,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get_server_status;
 
 
@@ -1099,7 +1099,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end get_help;
 
 
@@ -1132,7 +1132,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end list_directory;
 
 
@@ -1157,7 +1157,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end create_directory;
 
 
@@ -1181,7 +1181,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end remove_directory;
 
 
@@ -1208,7 +1208,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end rename_file;
 
 
@@ -1232,7 +1232,7 @@ as
   exception
     when others then
       logout;
-      pit.sql_exception(msg.SQL_ERROR, msg_args(sqlerrm));
+      pit.handle_exception(msg.SQL_ERROR, msg_args(sqlerrm));
   end delete_file;
 
 begin
