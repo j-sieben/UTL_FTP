@@ -4,8 +4,8 @@ Simple FTP client for in database use
 ## What it is
 Based on the work of Tim Hall at [Oracle Base](https://oracle-base.com/articles/misc/ftp-from-plsql) I started to build my own implementation of a FTP client for in database use. The work of Tim was extremely useful as it showed me how talking to a FTP server can be done. But it turned out that I needed a different interface and some additional functionality over what Tim has implemented. I therefore decided to extend Tim's code but soon it turned out that I had to completely redesign it in order to achieve my requirements. These are:
 
-- Ability to directly send a blob or clob from within the database to a FTP server and receive a FTP file into a BLOB or CLOB directly
-- Being able to work within a session without having to re-connect each time
+- Ability to directly send a `BLOB` or `CLOB` from within the database to a FTP server and receive a FTP file into a `BLOB` or `CLOB` directly
+- Being able to work within a session context without having to re-connect each time
 - Ability to read a FTP directory directly from within SQL and use this within a cursor in PL/SQL
 - Searching through directory structures with SQL
 - Full instrumentation, including exception handling
@@ -24,7 +24,7 @@ Here's an example of how to register a FTP server with `UTL_FTP`:
 begin
   utl_ftp.register_ftp_server(
     p_ftp_server => 'FOO', -- this is the nickname you reference the server with
-    p_host_name => '129.168.1.10', -- or DNS name
+    p_host_name => '123.234.1.10', -- or DNS name
     p_port => 21,
     p_username => 'FOO', -- defaults to anonymous
     p_password => 'my_pass',
