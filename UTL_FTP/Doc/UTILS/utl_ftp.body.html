@@ -1,0 +1,1607 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+ <HEAD>
+ <LINK REL="STYLESHEET" TYPE="text/css" HREF="../plsqldoc.css">
+ <TITLE>Package body utl_ftp</TITLE>
+ <META name="object" content="PACKAGE BODY">
+ <META name="name" content="UTILS.utl_ftp">
+ <META name="description" content="Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : UTL_FTP Author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : Juergen Sieben, based on the work of Tim Hall Description&nbsp; : Simple FTP-API for in database use Requirements : UTL_TCP">
+</HEAD>
+<BODY>
+<TABLE WIDTH="100%"><TR>
+<TD><P ALIGN="LEFT"><STRONG><SMALL>UTILS</SMALL></STRONG></TD>
+<TD><P ALIGN="RIGHT"><STRONG><SMALL><A HREF="../index.html">index</A></SMALL></STRONG></TD>
+</TR></TABLE>
+<TABLE CLASS="MAIN_TABLE"><TR><TD CLASS="DESC_TEXT">
+<P CLASS="MAIN_TITLE">Package body utl_ftp</P>
+Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <A HREF="utl_ftp.html">UTL_FTP</A>
+Author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : Juergen Sieben, based on the work of Tim Hall Description&nbsp; : Simple FTP-API for in database use Requirements : UTL_TCP<br>
+
+<BR>
+</TD></TR></TABLE>
+<HR>
+<A NAME="Program units"></A>
+<TABLE CLASS="SUB_TABLE"><TR><TD CLASS="SUB_TITLE">
+Program units
+</TD></TR></TABLE>
+<TABLE CLASS="SUB_TABLE">
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#PUSH_LIST">push_list</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to push an entry to the respective list
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_LAST">get_last</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to access last entry in reply list
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_FTP_SERVER">get_ftp_server</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Accessor to internal server list that stores registered servers
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CONVERT_DIRECTORY_LIST">convert_directory_list</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to analyze output of MLSD-command and convert it to <A HREF="ftp_list_t.html#FTP_LIST_T">FTP_LIST_T</A>
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CHECK_RESPONSE">check_response</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to check response of a command
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_RESPONSE">get_response</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to read output of the control connection
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#READ_REPLY">read_reply</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to read output of the data connection
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#DO_COMMAND">do_command</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to send a ftp command
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#SET_TRANSFER_TYPE">set_transfer_type</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to control the transfer mode (C_TYPE_BINARY|C_TYPE_ASCII)
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_DATA_CONNECTION">get_data_connection</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to <A HREF=#GET>get</A> a data connection to the FTP server in passive mode (PASV)
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CLOSE_DATA_CONNECTION">close_data_connection</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to close a data connection after data submission
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#READ_DATA">read_data</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Wrapper method to issue a command and read data from the data connection
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#INITIALIZE">initialize</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+initialization method to read predefined ftp server settings
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LOGIN">login</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+LOGIN procedure (internal) Logs into <A HREF=#G_SERVER>G_SERVER</A> gathered from FTP_SERVER_LIST
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#AUTO_LOGIN">auto_login</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Helper to automatically create a session if no explicit session exists
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#AUTO_LOGOUT">auto_logout</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Closes the session if it is marked as AUTO
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#REGISTER_FTP_SERVER">register_ftp_server</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+INTERFACE
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#UNREGISTER_FTP_SERVER">unregister_ftp_server</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+register permanent
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#SET_TIMEOUT">set_timeout</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LOGIN2">login</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LOGOUT">logout</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET">get</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+COMMANDS
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET2">get</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+write content from FTP server to local file
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET3">get</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+copy file to local CLOB
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#PUT">put</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Read confirmation and clean up
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#PUT2">put</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Close file and cleanup
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_SERVER_STATUS">get_server_status</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+clean up
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_CONTROL_LOG">get_control_log</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+read control content and pipe it
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_CONTROL_LOG_TEXT">get_control_log_text</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+No <A HREF=#AUTO_LOGIN>AUTO_LOGIN</A> here as a control log is only available in an explicit session
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_HELP">get_help</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LIST_DIRECTORY">list_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Execute command locally as this method retrieves data via control connection Plus, result shall be immediately piped, so extracting it into a helper does not save code
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CREATE_DIRECTORY">create_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#REMOVE_DIRECTORY">remove_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#RENAME_FILE">rename_file</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#DELETE_FILE">delete_file</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Types"></A>
+<TABLE CLASS="SUB_TABLE"><TR><TD CLASS="SUB_TITLE">
+Types
+</TD></TR></TABLE>
+<TABLE CLASS="SUB_TABLE">
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CHUNK_TYPE">chunk_type</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Subtypes to easily adopt different chunk sizes
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#RAW_CHUNK_TYPE">raw_chunk_type</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#FTP_SERVER_REC">ftp_server_rec</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Data structure to keep internal list of ftp-servers accessible via nickname
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#SERVER_LIST_TAB">server_list_tab</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CODE_TAB">code_tab</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Table to pass list of expected result codes to READ_RESPONSE
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Variables"></A>
+<TABLE CLASS="SUB_TABLE"><TR><TD CLASS="SUB_TITLE">
+Variables
+</TD></TR></TABLE>
+<TABLE CLASS="SUB_TABLE">
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#G_BINARY">g_binary</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#G_OPEN_MODE">g_open_mode</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#G_SERVER_LIST">g_server_list</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#G_SERVER">g_server</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+global variable for active server session.
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#G_TIMEOUT">g_timeout</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Constants"></A>
+<TABLE CLASS="SUB_TABLE"><TR><TD CLASS="SUB_TITLE">
+Constants
+</TD></TR></TABLE>
+<TABLE CLASS="SUB_TABLE">
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_CR">c_cr</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_CHUNK_SIZE">c_chunk_size</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_WRITE_BYTE">c_write_byte</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_WRITE_TEXT">c_write_text</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_DELETE">c_ftp_delete</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+FTP commands
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_HELP">c_ftp_help</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_LIST">c_ftp_list</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_MAKE_DIRECTORY">c_ftp_make_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_NOOP">c_ftp_noop</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_PASSWORD">c_ftp_password</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_PASSIVE">c_ftp_passive</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_QUIT">c_ftp_quit</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_RETRIEVE">c_ftp_retrieve</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_REMOVE_DIRECTORY">c_ftp_remove_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_RENAME_FROM">c_ftp_rename_from</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_RENAME_TO">c_ftp_rename_to</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_STATUS">c_ftp_status</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_STORE">c_ftp_store</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_TRANSFER_ASCII">c_ftp_transfer_ascii</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_TRANSFER_BINARY">c_ftp_transfer_binary</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_USER_NAME">c_ftp_user_name</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_TRANSIENT_ERROR">c_ftp_transient_error</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+FTP error return code groups
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_FTP_PERMANENT_ERROR">c_ftp_permanent_error</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="C_CR"></A>
+<P CLASS="TYPE_TITLE">
+c_cr
+</P>
+<PRE CLASS="DECL_TEXT">
+c_cr constant varchar2(2 byte) := chr(13);
+</PRE>
+<HR>
+<A NAME="C_CHUNK_SIZE"></A>
+<P CLASS="TYPE_TITLE">
+c_chunk_size
+</P>
+<PRE CLASS="DECL_TEXT">
+c_chunk_size constant number := 32767;
+</PRE>
+<HR>
+<A NAME="C_WRITE_BYTE"></A>
+<P CLASS="TYPE_TITLE">
+c_write_byte
+</P>
+<PRE CLASS="DECL_TEXT">
+c_write_byte constant varchar2(2) := 'wb';
+</PRE>
+<HR>
+<A NAME="C_WRITE_TEXT"></A>
+<P CLASS="TYPE_TITLE">
+c_write_text
+</P>
+<PRE CLASS="DECL_TEXT">
+c_write_text constant varchar2(2) := 'w';
+</PRE>
+<HR>
+<A NAME="C_FTP_DELETE"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_delete
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_delete constant varchar2(10) := 'DELE ';
+</PRE>
+<P CLASS="DESC_TEXT">
+FTP commands<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="C_FTP_HELP"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_help
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_help constant varchar2(10) := 'HELP ';
+</PRE>
+<HR>
+<A NAME="C_FTP_LIST"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_list
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_list constant varchar2(10) := 'MLSD ';
+</PRE>
+<HR>
+<A NAME="C_FTP_MAKE_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_make_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_make_directory constant varchar2(10) := 'MKD ';
+</PRE>
+<HR>
+<A NAME="C_FTP_NOOP"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_noop
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_noop constant varchar2(10) := 'NOOP';
+</PRE>
+<HR>
+<A NAME="C_FTP_PASSWORD"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_password
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_password constant varchar2(10) := 'PASS ';
+</PRE>
+<HR>
+<A NAME="C_FTP_PASSIVE"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_passive
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_passive constant varchar2(10) := 'PASV';
+</PRE>
+<HR>
+<A NAME="C_FTP_QUIT"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_quit
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_quit constant varchar2(10) := 'QUIT';
+</PRE>
+<HR>
+<A NAME="C_FTP_RETRIEVE"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_retrieve
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_retrieve constant varchar2(10) := 'RETR ';
+</PRE>
+<HR>
+<A NAME="C_FTP_REMOVE_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_remove_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_remove_directory constant varchar2(10) := 'RMD ';
+</PRE>
+<HR>
+<A NAME="C_FTP_RENAME_FROM"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_rename_from
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_rename_from constant varchar2(10) := 'RNFR ';
+</PRE>
+<HR>
+<A NAME="C_FTP_RENAME_TO"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_rename_to
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_rename_to constant varchar2(10) := 'RNTO ';
+</PRE>
+<HR>
+<A NAME="C_FTP_STATUS"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_status
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_status constant varchar2(10) := 'STAT';
+</PRE>
+<HR>
+<A NAME="C_FTP_STORE"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_store
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_store constant varchar2(10) := 'STOR ';
+</PRE>
+<HR>
+<A NAME="C_FTP_TRANSFER_ASCII"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_transfer_ascii
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_transfer_ascii constant varchar2(20) := 'TYPE ' || c_type_ascii;
+</PRE>
+<HR>
+<A NAME="C_FTP_TRANSFER_BINARY"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_transfer_binary
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_transfer_binary constant varchar2(20) := 'TYPE ' || c_type_binary;
+</PRE>
+<HR>
+<A NAME="C_FTP_USER_NAME"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_user_name
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_user_name constant varchar2(10) := 'USER ';
+</PRE>
+<HR>
+<A NAME="C_FTP_TRANSIENT_ERROR"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_transient_error
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_transient_error constant char(2 byte) := '4%';
+</PRE>
+<P CLASS="DESC_TEXT">
+FTP error return code groups<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="C_FTP_PERMANENT_ERROR"></A>
+<P CLASS="TYPE_TITLE">
+c_ftp_permanent_error
+</P>
+<PRE CLASS="DECL_TEXT">
+c_ftp_permanent_error constant char(2 byte) := '5%';
+</PRE>
+<HR>
+<A NAME="CHUNK_TYPE"></A>
+<P CLASS="TYPE_TITLE">
+chunk_type
+</P>
+<PRE CLASS="DECL_TEXT">
+subtype chunk_type is varchar2(32767);
+</PRE>
+<P CLASS="DESC_TEXT">
+Subtypes to easily adopt different chunk sizes<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="RAW_CHUNK_TYPE"></A>
+<P CLASS="TYPE_TITLE">
+raw_chunk_type
+</P>
+<PRE CLASS="DECL_TEXT">
+subtype raw_chunk_type is raw(32767);
+</PRE>
+<HR>
+<A NAME="G_BINARY"></A>
+<P CLASS="TYPE_TITLE">
+g_binary
+</P>
+<PRE CLASS="DECL_TEXT">
+g_binary boolean := true;
+</PRE>
+<HR>
+<A NAME="G_OPEN_MODE"></A>
+<P CLASS="TYPE_TITLE">
+g_open_mode
+</P>
+<PRE CLASS="DECL_TEXT">
+g_open_mode varchar2(2 byte) := c_write_byte;
+</PRE>
+<HR>
+<A NAME="FTP_SERVER_REC"></A>
+<P CLASS="TYPE_TITLE">
+ftp_server_rec
+</P>
+<PRE CLASS="DECL_TEXT">
+type ftp_server_rec is record(
+  host_name varchar2(50 char),
+  port number,
+  user_name varchar2(100 char),
+  password varchar2(100 char),
+  control_connection utl_tcp.connection,
+  data_connection utl_tcp.connection,
+  control_reply <A HREF="ftp_reply_tab.html">ftp_reply_tab</A>,
+  data_reply <A HREF="ftp_reply_tab.html">ftp_reply_tab</A>,
+  auto_session boolean := false);
+</PRE>
+<P CLASS="DESC_TEXT">
+Data structure to keep internal list of ftp-servers accessible via nickname<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="SERVER_LIST_TAB"></A>
+<P CLASS="TYPE_TITLE">
+server_list_tab
+</P>
+<PRE CLASS="DECL_TEXT">
+type server_list_tab is table of <A HREF=#FTP_SERVER_REC>ftp_server_rec</A> index by varchar2(30 byte);
+</PRE>
+<HR>
+<A NAME="G_SERVER_LIST"></A>
+<P CLASS="TYPE_TITLE">
+g_server_list
+</P>
+<PRE CLASS="DECL_TEXT">
+g_server_list server_list_tab;
+</PRE>
+<HR>
+<A NAME="G_SERVER"></A>
+<P CLASS="TYPE_TITLE">
+g_server
+</P>
+<PRE CLASS="DECL_TEXT">
+g_server ftp_server_rec;
+</PRE>
+<P CLASS="DESC_TEXT">
+global variable for active server session.<br>
+Active session may not be taken from the PL/SQL-list in each method, as this creates a deep copy instead of a reference<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="G_TIMEOUT"></A>
+<P CLASS="TYPE_TITLE">
+g_timeout
+</P>
+<PRE CLASS="DECL_TEXT">
+g_timeout number;
+</PRE>
+<HR>
+<A NAME="CODE_TAB"></A>
+<P CLASS="TYPE_TITLE">
+code_tab
+</P>
+<PRE CLASS="DECL_TEXT">
+type code_tab is table of number(3);
+</PRE>
+<P CLASS="DESC_TEXT">
+Table to pass list of expected result codes to READ_RESPONSE<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="PUSH_LIST"></A>
+<P CLASS="TYPE_TITLE">
+push_list
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure push_list(p_list  in out nocopy <A HREF="ftp_reply_tab.html">ftp_reply_tab</A>,
+                    p_entry <A HREF="ftp_reply_t.html">ftp_reply_t</A>)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to push an entry to the respective list<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called internally to store all replies (control and data connection) for later reference.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_list&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+List of reply records<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_entry&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Reply to push to the list<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_LAST"></A>
+<P CLASS="TYPE_TITLE">
+get_last
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_last(p_list in <A HREF="ftp_reply_tab.html">ftp_reply_tab</A>) return <A HREF="ftp_reply_t.html">ftp_reply_t</A>
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to access last entry in reply list<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+used internally to access last response code<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_list&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Reply list<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Returns"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Returns
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+last entry of reply list<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_FTP_SERVER"></A>
+<P CLASS="TYPE_TITLE">
+get_ftp_server
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get_ftp_server(p_ftp_server in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Accessor to internal server list that stores registered servers<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Called internally to retrieve logon information and access to generic server attributes. Throws an error if nickname is unknown.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of registered server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Returns"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Returns
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+server record for nickname, if present<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="CONVERT_DIRECTORY_LIST"></A>
+<P CLASS="TYPE_TITLE">
+convert_directory_list
+</P>
+<PRE CLASS="DECL_TEXT">
+Function convert_directory_list(p_entry in varchar2) return <A HREF="ftp_list_t.html#FTP_LIST_T">ftp_list_t</A>
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to analyze output of MLSD-command and convert it to <A HREF="ftp_list_t.html#FTP_LIST_T">FTP_LIST_T</A>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method uses externally defined <A HREF="ftp_list_t.html#FTP_LIST_T">FTP_LIST_T</A> to enable access to the converted answer via SQL and a pipelined function.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_entry&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Response of the FTP-server on MLSD command<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Returns"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Returns
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Instance of <A HREF="ftp_list_t.html#FTP_LIST_T">FTP_LIST_T</A>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="CHECK_RESPONSE"></A>
+<P CLASS="TYPE_TITLE">
+check_response
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure check_response(p_expected_code in <A HREF=#CODE_TAB>code_tab</A>,
+                         p_reply         in <A HREF="ftp_reply_t.html">ftp_reply_t</A>)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to check response of a command<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Checks the reply received for: <ul><li>Transient and permanent errors</li> <li>Outcome code against the list of expected codes</li> <li>Unexptected return codes</li></ul>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_expected_code&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+List of expected return codes<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_reply&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Single reply of type <A HREF="ftp_reply_t.html">FTP_REPLY_T</A> with attributes CODE and MESSAGE<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_RESPONSE"></A>
+<P CLASS="TYPE_TITLE">
+get_response
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get_response(p_expected_code  in <A HREF=#CODE_TAB>code_tab</A>,
+                       p_multi_response in boolean)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to read output of the control connection<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Copies all output of control connection into CONTROL_REPLY attribute.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_expected_code&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+List of expected codes (will be forwarded to <A HREF=#CHECK_RESPONSE>CHECK_RESPONSE</A>)<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_multi_response&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Flag that indicates whether a command will possibly return more than one return message, such as <A HREF=#LOGIN>LOGIN</A>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="READ_REPLY"></A>
+<P CLASS="TYPE_TITLE">
+read_reply
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure read_reply(p_command in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to read output of the data connection<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Copies all output of control connection into DATA_REPLY attribute. As more than one response is possible, it is necessary to pool until either UTL_TCP.END_OF_INPUT is raised or the method times out. To avoid frequent unnecessary time out events, a warning is raised to give an indication to the user that this command may not require this method to process its output.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_command&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Information about the command for which result shall be read<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="DO_COMMAND"></A>
+<P CLASS="TYPE_TITLE">
+do_command
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure do_command(p_command        in varchar2,
+                     p_expected_code  in <A HREF=#CODE_TAB>code_tab</A> default null,
+                     p_multi_response boolean default false)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to send a ftp command<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Called internally to execute a FTP comman at the actually selected FTP server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_command&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+FTP command to execute<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_expected_code&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional list of expected results. Used for cross check<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_multi_response&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Flag to indicate whether a command may expect multiple result messages<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="SET_TRANSFER_TYPE"></A>
+<P CLASS="TYPE_TITLE">
+set_transfer_type
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure set_transfer_type(p_transfer_mode in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to control the transfer mode (C_TYPE_BINARY|C_TYPE_ASCII)<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is used to transfer CLOB or file content either as C_TYPE_ASCII or as C_TYPE_BINARY<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_mode&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Type requested<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_DATA_CONNECTION"></A>
+<P CLASS="TYPE_TITLE">
+get_data_connection
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get_data_connection(p_transfer_type in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to <A HREF=#GET>get</A> a data connection to the FTP server in passive mode (PASV)<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Sets data connection for the actually selected FTP server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_type&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+mode in which the data transfer should be made (C_TYPE_ASCII | C_TYPE_BINARY)<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="CLOSE_DATA_CONNECTION"></A>
+<P CLASS="TYPE_TITLE">
+close_data_connection
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure close_data_connection
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to close a data connection after data submission<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="READ_DATA"></A>
+<P CLASS="TYPE_TITLE">
+read_data
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure read_data(p_transfer_type in varchar2,
+                    p_command       in varchar2,
+                    p_expected_code in <A HREF=#CODE_TAB>code_tab</A> default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Wrapper method to issue a command and read data from the data connection<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Called internally to execute P_COMMAND and read data from DATA_CONNECTION. Flow:<ul> <li>Open data connection</li> <li>Issue command over control connection and check return code</li> <li>read data from data connection and store it in FTP_SERVER.data_reply</li> <li>check whether data connection is closed</li></ul>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_type&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+mode in which the data transfer should be made (C_TYPE_ASCII | C_TYPE_BINARY) routed through to <A HREF=#GET_DATA_CONNECTION>GET_DATA_CONNECTION</A>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_command&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Command to execute<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_expected_code&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional list of result codes expected on the control connection<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="INITIALIZE"></A>
+<P CLASS="TYPE_TITLE">
+initialize
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure initialize
+
+</PRE>
+<P CLASS="DESC_TEXT">
+initialization method to read predefined ftp server settings<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Called internally upon package initialization of the package<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="LOGIN"></A>
+<P CLASS="TYPE_TITLE">
+login
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure login
+
+</PRE>
+<P CLASS="DESC_TEXT">
+LOGIN procedure (internal) Logs into <A HREF=#G_SERVER>G_SERVER</A> gathered from FTP_SERVER_LIST<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="AUTO_LOGIN"></A>
+<P CLASS="TYPE_TITLE">
+auto_login
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure auto_login(p_ftp_server in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Helper to automatically create a session if no explicit session exists<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called by any command accessing the server. It pings the FTP server to see whether it's available and creates a session, if not. In this case, the session is marked as AUTO and automatically closed at the end of the command.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP server to connect to<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="AUTO_LOGOUT"></A>
+<P CLASS="TYPE_TITLE">
+auto_logout
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure auto_logout
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Closes the session if it is marked as AUTO<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Called at the end of a command to check whether an automatically created session needs to be destroyed<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="REGISTER_FTP_SERVER"></A>
+<P CLASS="TYPE_TITLE">
+register_ftp_server
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure register_ftp_server(p_ftp_server in varchar2,
+                              p_host_name  in varchar2,
+                              p_port       in varchar2 default '21',
+                              p_user_name  in varchar2 default 'anonymous',
+                              p_password   in varchar2 default 'foo',
+                              p_permanent  in boolean default true)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+INTERFACE<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="UNREGISTER_FTP_SERVER"></A>
+<P CLASS="TYPE_TITLE">
+unregister_ftp_server
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure unregister_ftp_server(p_ftp_server in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+register permanent<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="SET_TIMEOUT"></A>
+<P CLASS="TYPE_TITLE">
+set_timeout
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure set_timeout(p_duration in number)
+
+</PRE>
+<HR>
+<A NAME="LOGIN2"></A>
+<P CLASS="TYPE_TITLE">
+login
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure login(p_ftp_server in varchar2)
+
+</PRE>
+<HR>
+<A NAME="LOGOUT"></A>
+<P CLASS="TYPE_TITLE">
+logout
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure logout
+
+</PRE>
+<HR>
+<A NAME="GET"></A>
+<P CLASS="TYPE_TITLE">
+get
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get(p_from_file     in varchar2,
+              p_to_directory  in varchar2,
+              p_to_file       in varchar2,
+              p_ftp_server    in varchar2 default null,
+              p_transfer_type in varchar2 default c_type_binary)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+COMMANDS<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="GET2"></A>
+<P CLASS="TYPE_TITLE">
+get
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get(p_from_file     in varchar2,
+              p_data          out nocopy clob,
+              p_ftp_server    in varchar2 default null,
+              p_transfer_type in varchar2 default c_type_binary)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+write content from FTP server to local file<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="GET3"></A>
+<P CLASS="TYPE_TITLE">
+get
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get(p_from_file  in varchar2,
+              p_data       out nocopy blob,
+              p_ftp_server in varchar2 default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+copy file to local CLOB<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="PUT"></A>
+<P CLASS="TYPE_TITLE">
+put
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure put(p_from_directory in varchar2,
+              p_from_file      in varchar2,
+              p_to_file        in varchar2,
+              p_ftp_server     in varchar2 default null,
+              p_transfer_type  in varchar2 default c_type_binary)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Read confirmation and clean up<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="PUT2"></A>
+<P CLASS="TYPE_TITLE">
+put
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure put(p_to_file       in varchar2,
+              p_clob          in clob default null,
+              p_blob          in blob default null,
+              p_ftp_server    in varchar2 default null,
+              p_transfer_type in varchar2 default c_type_ascii)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Close file and cleanup<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="GET_SERVER_STATUS"></A>
+<P CLASS="TYPE_TITLE">
+get_server_status
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_server_status(p_ftp_server in varchar2 default null)
+  return char_table
+
+</PRE>
+<P CLASS="DESC_TEXT">
+clean up<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="GET_CONTROL_LOG"></A>
+<P CLASS="TYPE_TITLE">
+get_control_log
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_control_log return <A HREF="ftp_reply_tab.html">ftp_reply_tab</A>
+
+</PRE>
+<P CLASS="DESC_TEXT">
+read control content and pipe it<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="GET_CONTROL_LOG_TEXT"></A>
+<P CLASS="TYPE_TITLE">
+get_control_log_text
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_control_log_text return clob
+
+</PRE>
+<P CLASS="DESC_TEXT">
+No <A HREF=#AUTO_LOGIN>AUTO_LOGIN</A> here as a control log is only available in an explicit session<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="GET_HELP"></A>
+<P CLASS="TYPE_TITLE">
+get_help
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_help(p_command    in varchar2 default null,
+                  p_ftp_server in varchar2 default null) return char_table
+
+</PRE>
+<HR>
+<A NAME="LIST_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+list_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+Function list_directory(p_directory  in varchar2 default null,
+                        p_ftp_server in varchar2 default null)
+  return <A HREF="ftp_list_tab.html">ftp_list_tab</A>
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Execute command locally as this method retrieves data via control connection Plus, result shall be immediately piped, so extracting it into a helper does not save code<br>
+
+<BR>
+</P>
+<HR>
+<A NAME="CREATE_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+create_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure create_directory(p_directory  in varchar2,
+                           p_ftp_server in varchar2 default null)
+
+</PRE>
+<HR>
+<A NAME="REMOVE_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+remove_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure remove_directory(p_directory  in varchar2,
+                           p_ftp_server in varchar2 default null)
+
+</PRE>
+<HR>
+<A NAME="RENAME_FILE"></A>
+<P CLASS="TYPE_TITLE">
+rename_file
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure rename_file(p_from       in varchar2,
+                      p_to         in varchar2,
+                      p_ftp_server in varchar2 default null)
+
+</PRE>
+<HR>
+<A NAME="DELETE_FILE"></A>
+<P CLASS="TYPE_TITLE">
+delete_file
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure delete_file(p_file       in varchar2,
+                      p_ftp_server in varchar2 default null)
+
+</PRE>
+<P>&nbsp;</P>
+<P>&nbsp;</P>
+</BODY>
+</HTML>

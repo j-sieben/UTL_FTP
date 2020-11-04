@@ -1,0 +1,1124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+ <HEAD>
+ <LINK REL="STYLESHEET" TYPE="text/css" HREF="../plsqldoc.css">
+ <TITLE>Package utl_ftp</TITLE>
+ <META name="object" content="PACKAGE">
+ <META name="name" content="UTILS.utl_ftp">
+ <META name="description" content="Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : UTL_FTP Author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : Juergen Sieben, based on the work of Tim Hall Description&nbsp; : Simple FTP-API for in database use Requirements : UTL_TCP">
+</HEAD>
+<BODY>
+<TABLE WIDTH="100%"><TR>
+<TD><P ALIGN="LEFT"><STRONG><SMALL>UTILS</SMALL></STRONG></TD>
+<TD><P ALIGN="RIGHT"><STRONG><SMALL><A HREF="../index.html">index</A></SMALL></STRONG></TD>
+</TR></TABLE>
+<TABLE CLASS="MAIN_TABLE"><TR><TD CLASS="DESC_TEXT">
+<P CLASS="MAIN_TITLE">Package utl_ftp</P>
+Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : UTL_FTP Author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : Juergen Sieben, based on the work of Tim Hall Description&nbsp; : Simple FTP-API for in database use Requirements : UTL_TCP<br>
+
+<BR>
+</TD></TR></TABLE>
+<HR>
+<A NAME="Program units"></A>
+<TABLE CLASS="SUB_TABLE"><TR><TD CLASS="SUB_TITLE">
+Program units
+</TD></TR></TABLE>
+<TABLE CLASS="SUB_TABLE">
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#REGISTER_FTP_SERVER">register_ftp_server</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to register a server explicitly at the package
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#UNREGISTER_FTP_SERVER">unregister_ftp_server</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to un-register a registered server from the server list
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#SET_TIMEOUT">set_timeout</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Setter to adjust timeout wait time for the respective FTP-Server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LOGIN">login</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to explicitly start a FTP session
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LOGOUT">logout</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to close an explicitly opened FTP session
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET">get</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Procedure to read a file from the FTP server and copy it to the local filesystem
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET2">get</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Overloaded method to read a file from an FTP server to a local CLOB
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET3">get</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Overloaded method to read a file from an FTP server to a local BLOB
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#PUT">put</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to copy a local file to the FTP server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#PUT2">put</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to copy a local CLOB/BLOB instance to a file on the FTP server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_SERVER_STATUS">get_server_status</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method GET_SERVER_STATUS reads the actual status of the FTP server and returns it as an instance of CHAR_TABLE.
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_CONTROL_LOG">get_control_log</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to retrieve the control log as a data structure for further reference
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_CONTROL_LOG_TEXT">get_control_log_text</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Overloaded version that returns the control log as a clob-instance
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#GET_HELP">get_help</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Command to retrieve help from the FTP server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#LIST_DIRECTORY">list_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Method to retrieve a directory listing of the directory specified
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#CREATE_DIRECTORY">create_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Creates a directory on the FTP server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#REMOVE_DIRECTORY">remove_directory</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Removes a directory on the FTP server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#RENAME_FILE">rename_file</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Renames a file on the FTP server
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#DELETE_FILE">delete_file</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Deletes a file from the FTP server
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Constants"></A>
+<TABLE CLASS="SUB_TABLE"><TR><TD CLASS="SUB_TITLE">
+Constants
+</TD></TR></TABLE>
+<TABLE CLASS="SUB_TABLE">
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_TYPE_BINARY">c_type_binary</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="TYPE_ITEM">
+<A HREF="#C_TYPE_ASCII">c_type_ascii</A>&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="C_TYPE_BINARY"></A>
+<P CLASS="TYPE_TITLE">
+c_type_binary
+</P>
+<PRE CLASS="DECL_TEXT">
+c_type_binary constant char(1 byte) := 'I';
+</PRE>
+<HR>
+<A NAME="C_TYPE_ASCII"></A>
+<P CLASS="TYPE_TITLE">
+c_type_ascii
+</P>
+<PRE CLASS="DECL_TEXT">
+c_type_ascii constant char(1 byte) := 'A';
+</PRE>
+<HR>
+<A NAME="REGISTER_FTP_SERVER"></A>
+<P CLASS="TYPE_TITLE">
+register_ftp_server
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure register_ftp_server(p_ftp_server in varchar2,
+                              p_host_name  in varchar2,
+                              p_port       in varchar2 default '21',
+                              p_user_name  in varchar2 default 'anonymous',
+                              p_password   in varchar2 default 'foo',
+                              p_permanent  in boolean default true)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to register a server explicitly at the package<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called to explicitly register a FTP server. Alternatively, it may be written to table FTP_SERVERS to allow for automatic registration upon initialization of the package. CAUTION: Nicknames are unique and case insensitive. A server with the same nickname as an existing server will be overwritten with the respective settings. The user is responsible to take care of uniqueness and correct use!<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the server, referenced in subsequent calls. Limit of 30 byte, stored in uppercase<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_host_name&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name or IP address of the FTP server<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_port&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Port of the FTP server. Defaults to 21<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_user_name&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Username of the account. Defaults to 'anonymous'<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_password&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Password, defaults to FOO<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_permanent&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+If TRUE, the registration is stored at <A HREF="FTP_SERVER.html">FTP_SERVER</A> and automatically registered from thereon<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="UNREGISTER_FTP_SERVER"></A>
+<P CLASS="TYPE_TITLE">
+unregister_ftp_server
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure unregister_ftp_server(p_ftp_server in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to un-register a registered server from the server list<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+This method will un-register the FTP server both from the actual instance as well as from table <A HREF="FTP_SERVER.html">FTP_SERVER</A>. It will not unregister the server from other instances of this package running in different sessions.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the server to unregister<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="SET_TIMEOUT"></A>
+<P CLASS="TYPE_TITLE">
+set_timeout
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure set_timeout(p_duration in number)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Setter to adjust timeout wait time for the respective FTP-Server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+If the FTP server responses to a command it may take a while until the result code of that operation returns. Here you can adjust how long UTL_FTP is going to wait for that response. Defaults to 0.5 seconds<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_duration&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Time in seconds the service waits for responses from the FTP-Server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="LOGIN"></A>
+<P CLASS="TYPE_TITLE">
+login
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure login(p_ftp_server in varchar2)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to explicitly start a FTP session<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+All commands have an auto logon option that enables them to automatically connect and disconnect to a registered FTP server. Disadvantage is that these methods open and close a session per call. If you want to issue more than one command using the same session, you may explicitly open a connection for this server and close it after the chain of commands using method <A HREF=#LOGOUT>LOGOUT</A>.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the registered FTP server to connect to<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="LOGOUT"></A>
+<P CLASS="TYPE_TITLE">
+logout
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure logout
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to close an explicitly opened FTP session<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Called to finish the explicit FTP session opened by <A HREF=#LOGIN>LOGIN</A>. Please make sure to explicitly close all explicitly opened sessions to avoid denial of service due to max open session exceeded<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET"></A>
+<P CLASS="TYPE_TITLE">
+get
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get(p_from_file     in varchar2,
+              p_to_directory  in varchar2,
+              p_to_file       in varchar2,
+              p_ftp_server    in varchar2 default null,
+              p_transfer_type in varchar2 default <A HREF=#C_TYPE_BINARY>c_type_binary</A>)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Procedure to read a file from the FTP server and copy it to the local filesystem<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+This overloaded method is used when a file from the FTP server is to be copied to a local file system. If you want to consume the content within the database, select the other overloaded methods to directly return CLOB or BLOB<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_from_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the file to retrieve<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_to_directory&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of an oracle directory to store the file at<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_to_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+local file name<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the registered server to read from. Required in implicit session mode only<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_type&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Type of data transfer. Choose between BINARY and ASCII. Defaults to BINARY<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET2"></A>
+<P CLASS="TYPE_TITLE">
+get
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get(p_from_file     in varchar2,
+              p_data          out nocopy clob,
+              p_ftp_server    in varchar2 default null,
+              p_transfer_type in varchar2 default <A HREF=#C_TYPE_BINARY>c_type_binary</A>)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Overloaded method to read a file from an FTP server to a local CLOB<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Use this method if you need to retrieve a file from the FTP server as CLOB<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_from_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the file to retrieve<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_data&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Out parameter with the file content as CLOB<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the registered server to read from. Required in implicit session mode only<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_type&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional parameter to choose betwen BINARY or ASCII file transmission. Defaults to BINARY<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET3"></A>
+<P CLASS="TYPE_TITLE">
+get
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure get(p_from_file  in varchar2,
+              p_data       out nocopy blob,
+              p_ftp_server in varchar2 default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Overloaded method to read a file from an FTP server to a local BLOB<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Use this method if you need to retrieve a file from the FTP server as BLOB<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the registered server to read from. Required in implicit session mode only<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_from_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the file to retrieve<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_data&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Out parameter with the file content as BLOB<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="PUT"></A>
+<P CLASS="TYPE_TITLE">
+put
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure put(p_from_directory in varchar2,
+              p_from_file      in varchar2,
+              p_to_file        in varchar2,
+              p_ftp_server     in varchar2 default null,
+              p_transfer_type  in varchar2 default <A HREF=#C_TYPE_BINARY>c_type_binary</A>)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to copy a local file to the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+This overloaded method should be used if you need to copy a local file to an FTP server. If the data to copy is available as CLOB or BLOB within the database, use the overloaded versions instead.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_from_dir&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of an oracle directory that contains the file to copy<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_from_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the local file<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_to_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Path and name of the remote file<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the registered server to write. Required in implicit session mode only<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_type&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Type of data transfer (C_TYPE_BINARY|C_TYPE_ASCII), defaults to <A HREF=#C_TYPE_BINARY>C_TYPE_BINARY</A>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="PUT2"></A>
+<P CLASS="TYPE_TITLE">
+put
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure put(p_to_file       in varchar2,
+              p_clob          in clob default null,
+              p_blob          in blob default null,
+              p_ftp_server    in varchar2 default null,
+              p_transfer_type in varchar2 default <A HREF=#C_TYPE_ASCII>c_type_ascii</A>)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to copy a local CLOB/BLOB instance to a file on the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+This method overload is used to store a local CLOB/BLOB instance at the FTP server. If neither P_CLOB nor P_BLOB is used, an error is thrown.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_to_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Path and name of the file on the FTP server<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_clob&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional CLOB instance to copy to the FTP server<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_clob&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional BLOB instance to copy to the FTP server<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the registered server to write to. Required in implicit session mode only<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_transfer_type&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+If the CLOB parameter is used, this parameter can be set to switch transfer mode to BINARY instead of ASCII<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_SERVER_STATUS"></A>
+<P CLASS="TYPE_TITLE">
+get_server_status
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_server_status(p_ftp_server in varchar2 default null)
+  return char_table
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method GET_SERVER_STATUS reads the actual status of the FTP server and returns it as an instance of CHAR_TABLE.<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+This method is designed to be used from within SQL in the form <pre>select * from table(utl_ftp.get_server_status('MY_FTP'));</pre> Output is meant to be read by humans only, so no processing of the response is made. If used without opening a session prior to this call, it connects to the server and disconnects after completion automatically.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Returns"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Returns
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Instance of type CHAR_TABLE with the status from the FTP server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_CONTROL_LOG"></A>
+<P CLASS="TYPE_TITLE">
+get_control_log
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_control_log return <A HREF="ftp_reply_tab.html">ftp_reply_tab</A>
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to retrieve the control log as a data structure for further reference<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+In an explicit session (explicitly opened by calling LOGON), the list of responses from the FTP server is collected in a local variable. It can be retrieved using this method. Only available in active explicit session, no AUTO <A HREF=#LOGIN>LOGIN</A>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_CONTROL_LOG_TEXT"></A>
+<P CLASS="TYPE_TITLE">
+get_control_log_text
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_control_log_text return clob
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Overloaded version that returns the control log as a clob-instance<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+In an explicit session (explicitly opened by calling LOGON), the list of responses from the FTP server is collected in a local variable. It can be retrieved using this method as a clob instance. Only available in active explicit session, no AUTO <A HREF=#LOGIN>LOGIN</A>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="GET_HELP"></A>
+<P CLASS="TYPE_TITLE">
+get_help
+</P>
+<PRE CLASS="DECL_TEXT">
+Function get_help(p_command    in varchar2 default null,
+                  p_ftp_server in varchar2 default null) return char_table
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Command to retrieve help from the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Call this method to retrieve help information from the FTP server. The output is not processed and intended to be consumed by human readers only.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_command&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional name of the command you want to <A HREF=#GET>get</A> help for. If ommited, general help is returned<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="LIST_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+list_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+Function list_directory(p_directory  in varchar2 default null,
+                        p_ftp_server in varchar2 default null)
+  return <A HREF="ftp_list_tab.html">ftp_list_tab</A>
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Method to retrieve a directory listing of the directory specified<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+This methods returns a processed version of the MLSD output in that it extracts the facts into separate columns and makes them accessible as a SQL table using the table function. Example: <pre>select * from table(utl_table('/path/', 'MY_FTP'));</pre>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_directory&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Optional path to the directory you require a listing for if ommited, the actual working directory is returned<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="CREATE_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+create_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure create_directory(p_directory  in varchar2,
+                           p_ftp_server in varchar2 default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Creates a directory on the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called to create a new directory on the FTP server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_directory&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the directory to create<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="REMOVE_DIRECTORY"></A>
+<P CLASS="TYPE_TITLE">
+remove_directory
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure remove_directory(p_directory  in varchar2,
+                           p_ftp_server in varchar2 default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Removes a directory on the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called to remove a directory on the FTP server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_directory&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the directory to remove<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="RENAME_FILE"></A>
+<P CLASS="TYPE_TITLE">
+rename_file
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure rename_file(p_from       in varchar2,
+                      p_to         in varchar2,
+                      p_ftp_server in varchar2 default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Renames a file on the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called to rename a file on the FTP server Useful to indicate completion of an upload by renaming the file after succesful loading (semaphore use). May be used to copy a file to a new location as well.<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_from&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the existing file<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_to&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+New name of the file including relative path<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<HR>
+<A NAME="DELETE_FILE"></A>
+<P CLASS="TYPE_TITLE">
+delete_file
+</P>
+<PRE CLASS="DECL_TEXT">
+Procedure delete_file(p_file       in varchar2,
+                      p_ftp_server in varchar2 default null)
+
+</PRE>
+<P CLASS="DESC_TEXT">
+Deletes a file from the FTP server<br>
+
+<BR>
+</P>
+<A NAME="Usage"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Usage
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Is called to delete a file from the FTP server<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<A NAME="Parameters"></A>
+<TABLE CLASS="LIST_TABLE"><TR><TD CLASS="LIST_TITLE">
+Parameters
+</TD></TR></TABLE>
+<TABLE CLASS="LIST_TABLE">
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_file&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Name of the file to delete<br>
+
+</TD></TR>
+<TR><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+</TD><TD VALIGN="TOP" CLASS="LIST_ITEM" WIDTH=1%>
+p_ftp_server&nbsp;&nbsp;
+</TD><TD CLASS="DESC_TEXT" WIDTH=95%>
+Nickname of the FTP-server. Required in implicit session mode only<br>
+
+</TD></TR>
+</TABLE>
+<BR>
+<P>&nbsp;</P>
+<P>&nbsp;</P>
+</BODY>
+</HTML>
